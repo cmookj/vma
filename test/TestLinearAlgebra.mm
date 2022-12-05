@@ -322,6 +322,29 @@ using namespace tls::blat;
             XCTAssert(mm12(i, j) == mm1.count_cols() * i * j);
 }
 
+- (void)testMatrixAdditionSubtraction {
+    mat<4, 3> m1 {};
+    for (std::size_t i = 1; i <= m1.count_rows(); ++i)
+        for (std::size_t j = 1; j <= m1.count_cols(); ++j)
+            m1(i, j) = double(i) + 2.*double(j);
+
+    mat<4, 3> m2 {};
+    for (std::size_t i = 1; i <= m2.count_rows(); ++i)
+        for (std::size_t j = 1; j <= m2.count_cols(); ++j)
+            m2(i, j) = 3.*double(i) - double(j);
+
+    auto m3 = m1 + m2;
+    for (std::size_t i = 1; i <= m3.count_rows(); ++i)
+        for (std::size_t j = 1; j <= m3.count_cols(); ++j)
+            XCTAssert(m3(i, j) == double(i) + 2.*double(j) + 3.*double(i) - double(j));
+    
+    auto m4 = m1 - m2;
+    for (std::size_t i = 1; i <= m4.count_rows(); ++i)
+        for (std::size_t j = 1; j <= m4.count_cols(); ++j)
+            XCTAssert(m4(i, j) == double(i) + 2.*double(j) - 3.*double(i) + double(j));
+
+}
+
 - (void)testMatrixScalarOperation {
     mat<6, 8> m1 {};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)

@@ -113,7 +113,7 @@ public:
 
     // Other constructors
     vec(std::array<double, DIM>&& elm)
-        : _elem {elm} { }
+        : _elem {std::move(elm)} { }
 
     vec(const double v) {
         std::for_each(_elem.begin(), _elem.end(), [&v](double& e) { e = v; });
@@ -487,7 +487,7 @@ public:
     mat(std::array<double, DIM_ROWS * DIM_COLS>&& elm)
         : _count_rows {DIM_ROWS}
         , _count_cols {DIM_COLS}
-        , _elem {elm} { }
+        , _elem {std::move(elm)} { }
 
     mat(const double v) {
         std::for_each(_elem.begin(), _elem.end(), [&v](double& e) { e = v; });
@@ -872,6 +872,16 @@ mat<DIM_ROWS, DIM_COLS> operator-(const mat<DIM_ROWS, DIM_COLS>& m) {
 }
 
 /**
+ @brief Adds two matrices
+ */
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
+mat<DIM_ROWS, DIM_COLS> operator+(const mat<DIM_ROWS, DIM_COLS>& a, const mat<DIM_ROWS, DIM_COLS>& b) {
+    auto result {a};
+    result += b;
+    return result;
+}
+
+/**
  @brief Adds a scalar to a matrix
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
@@ -885,6 +895,16 @@ template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
 mat<DIM_ROWS, DIM_COLS> operator+(const double s, const mat<DIM_ROWS, DIM_COLS>& m) {
     mat<DIM_ROWS, DIM_COLS> result {m};
     result += s;
+    return result;
+}
+
+/**
+ @brief Subtracts a matrix from another
+ */
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
+mat<DIM_ROWS, DIM_COLS> operator-(const mat<DIM_ROWS, DIM_COLS>& a, const mat<DIM_ROWS, DIM_COLS>& b) {
+    auto result {a};
+    result -= b;
     return result;
 }
 
