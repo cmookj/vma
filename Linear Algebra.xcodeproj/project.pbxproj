@@ -9,26 +9,14 @@
 /* Begin PBXBuildFile section */
 		0E39C7F72938D0F50031FBFB /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E39C7F62938D0F50031FBFB /* Accelerate.framework */; };
 		0E39C7F92938D8FD0031FBFB /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E39C7F82938D8FD0031FBFB /* Accelerate.framework */; };
-		0EADEFC02931EEE600B0374E /* libLinear Algebra.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EADEFA12931EBC800B0374E /* libLinear Algebra.dylib */; platformFilters = (macos, ); };
 		0EADEFC72931EFF300B0374E /* TestLinearAlgebra.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0EADEFC62931EFF300B0374E /* TestLinearAlgebra.mm */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		0EADEFC12931EEE600B0374E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0EADEF992931EBC800B0374E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 0EADEFA02931EBC800B0374E;
-			remoteInfo = "Linear Algebra";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0E39C7F62938D0F50031FBFB /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		0E39C7F82938D8FD0031FBFB /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/Accelerate.framework; sourceTree = DEVELOPER_DIR; };
 		0EADEFA12931EBC800B0374E /* libLinear Algebra.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libLinear Algebra.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0EADEFAF2931EC1400B0374E /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
-		0EADEFB02931EC1400B0374E /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
 		0EADEFB12931EC1400B0374E /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; path = doc; sourceTree = "<group>"; };
 		0EADEFB22931EC1400B0374E /* test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = test; sourceTree = "<group>"; };
 		0EADEFB32931EC1500B0374E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -50,13 +38,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				0E39C7F92938D8FD0031FBFB /* Accelerate.framework in Frameworks */,
-				0EADEFC02931EEE600B0374E /* libLinear Algebra.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0E39C7FA293D807F0031FBFB /* src */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 		0EADEF982931EBC800B0374E = {
 			isa = PBXGroup;
 			children = (
@@ -64,7 +58,7 @@
 				0EADEFB12931EC1400B0374E /* doc */,
 				0EADEFAF2931EC1400B0374E /* include */,
 				0EADEFB32931EC1500B0374E /* README.md */,
-				0EADEFB02931EC1400B0374E /* src */,
+				0E39C7FA293D807F0031FBFB /* src */,
 				0EADEFB22931EC1400B0374E /* test */,
 				0EADEFA22931EBC800B0374E /* Products */,
 				0EADEFCC2931F09D00B0374E /* Frameworks */,
@@ -130,7 +124,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				0EADEFC22931EEE600B0374E /* PBXTargetDependency */,
 			);
 			name = TestLinearAlgebra;
 			productName = TestLinearAlgebra;
@@ -200,17 +193,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		0EADEFC22931EEE600B0374E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilters = (
-				macos,
-			);
-			target = 0EADEFA02931EBC800B0374E /* Linear Algebra */;
-			targetProxy = 0EADEFC12931EEE600B0374E /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0EADEFAA2931EBC800B0374E /* Debug */ = {

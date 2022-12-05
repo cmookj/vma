@@ -23,12 +23,12 @@
 #include <array>
 #include <exception>
 #include <functional>
-#include <iostream>
 #include <limits>
 #include <numeric>
 #include <sstream>
 #include <string>
 #include <utility>
+#include <iostream>
 
 #if defined(__APPLE__)
 #include <vecLib/vecLib.h>
@@ -55,9 +55,6 @@ using real_t    = doublereal;
 
 namespace tls::blat {
 
-// Type alias
-using index_t = std::size_t;
-
 // Constants
 const double TOLERANCE = 2.2204e-16;
 const double EPS       = std::numeric_limits<double>::epsilon();
@@ -74,10 +71,15 @@ const unsigned INF =
     std::numeric_limits<unsigned>::max();
 #endif
 
-// Enumerations
-enum class format { SHORT, NORMAL, EXTENDED, SCIENTIFIC, EXTSCIENTIFIC };
+// =============================================================================
+//                                                                  Enumerations
+// =============================================================================
 
-enum class job_spec_t {
+// Format specification to generate string representation
+enum class output_fmt { sht, nml, ext, sci, scx };
+
+// Eigenvalue problem specification to control the problem setup and solution
+enum class eigen_spec {
     EIGENVALUE_ONLY,
     EIGENVALUE_AND_EIGENVEC,
     EIGENVALUE_AND_LEFT_EIGENVEC,
@@ -212,10 +214,50 @@ public:
     /**
      @brief Represents the vector as a text string
      */
-    std::string to_string() const {
+    std::string str(output_fmt fmt = output_fmt::nml) const {
         std::stringstream strm {};
-        auto              print = [&strm](const double& v) { strm << v << ", "; };
 
+        int width;
+        int precision;
+
+        std::ios_base::fmtflags options;
+        
+        switch(fmt){
+            case output_fmt::sht:
+                options = std::ios_base::fixed;
+                precision = 2;
+                width = 8;
+                break;
+                
+            case output_fmt::nml:
+                options = std::ios_base::fixed;
+                precision = 4;
+                width = 10;
+                break;
+                
+            case output_fmt::ext:
+                options = std::ios_base::fixed;
+                precision = 8;
+                width = 14;
+                break;
+                
+            case output_fmt::sci:
+                options = std::ios_base::scientific;
+                precision = 4;
+                width = 10;
+                break;
+                
+            case output_fmt::scx:
+                options = std::ios_base::scientific;
+                precision = 8;
+                width = 18;
+        }
+        
+        strm.setf(options, std::ios_base::floatfield);
+        strm.precision(precision);
+        
+        auto              print = [&strm, &width](const double& v) { strm.width(width); strm << v << ", "; };
+        
         strm << "[ ";
         std::for_each(_elem.cbegin(), _elem.cend(), print);
         strm << "]";
@@ -268,6 +310,15 @@ protected:
         }
     }
 };
+
+/**
+ @brief Outputs a vector to stream
+ */
+template <std::size_t DIM>
+std::ostream& operator<<(std::ostream& strm, const vec<DIM>& v) {
+    v.print(output_fmt::sht, strm);
+    return strm;
+}
 
 // -----------------------------------------------------------------------------
 //                                                       Special Vector Creation
@@ -515,14 +566,56 @@ public:
     }
 
     // Description (convert to string)
-    std::string to_string() const {
+    std::string str(output_fmt fmt = output_fmt::nml) const {
         std::stringstream strm {};
 
+        int width;
+        int precision;
+
+        std::ios_base::fmtflags options;
+        
+        switch(fmt){
+            case output_fmt::sht:
+                options = std::ios_base::fixed;
+                precision = 2;
+                width = 8;
+                break;
+                
+            case output_fmt::nml:
+                options = std::ios_base::fixed;
+                precision = 4;
+                width = 10;
+                break;
+                
+            case output_fmt::ext:
+                options = std::ios_base::fixed;
+                precision = 8;
+                width = 14;
+                break;
+                
+            case output_fmt::sci:
+                options = std::ios_base::scientific;
+                precision = 4;
+                width = 10;
+                break;
+                
+            case output_fmt::scx:
+                options = std::ios_base::scientific;
+                precision = 8;
+                width = 18;
+        }
+        
+        strm.setf(options, std::ios_base::floatfield);
+        strm.precision(precision);
+        
         for (std::size_t i = 0; i < _count_rows; ++i) {
             strm << "[ ";
+            
+            for (std::size_t j = 0; j < _count_cols; ++j) {
+                strm.width(width);
 
-            for (std::size_t j = 0; j < _count_cols; ++j)
-                strm << _elem[j * _count_rows + i] << ", ";
+            strm << _elem[j * _count_rows + i] << ", ";
+        }
 
             strm << "]\n";
         }

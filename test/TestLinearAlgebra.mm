@@ -67,6 +67,12 @@ using namespace tls::blat;
     for (std::size_t i = 1; i <= v6.dim(); ++i)
         XCTAssert(v6(i) == (2.*i - 1.) * std::pow(-1., i));
     
+    std::cout << v6.str(output_fmt::sht) << std::endl;
+    std::cout << v6.str() << std::endl;
+    std::cout << v6.str(output_fmt::ext) << std::endl;
+    std::cout << v6.str(output_fmt::sci) << std::endl;
+    std::cout << v6.str(output_fmt::scx) << std::endl;
+    
     auto v7 = rand<100>();
     
     auto v8 = randn<100>();
@@ -188,6 +194,12 @@ using namespace tls::blat;
     for (std::size_t i = 1; i <= m1.count_rows(); ++i )
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
             XCTAssert(m1(i, j) == (i - 1.) + j);
+    
+    std::cout << m1.str(output_fmt::sht) << std::endl;
+    std::cout << m1.str() << std::endl;
+    std::cout << m1.str(output_fmt::ext) << std::endl;
+    std::cout << m1.str(output_fmt::sci) << std::endl;
+    std::cout << m1.str(output_fmt::scx) << std::endl;
     
     mat<3, 4> m2 {" 1. -2. 3. -4.; -2 3 -4 5; 3 -4 5 -6;"};
     for (std::size_t i = 1; i <= m2.count_rows(); ++i )
