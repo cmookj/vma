@@ -386,6 +386,13 @@ template <std::size_t DIM> double norm(const vec<DIM>& v, const unsigned p = 2) 
 }
 
 /**
+ @brief Calculates the distance between two vectors
+ */
+template <std::size_t DIM> double dist(const vec<DIM>& a, const vec<DIM>& b) {
+    return norm(a - b);
+}
+
+/**
  @brief Adds two vectors
  */
 template <std::size_t DIM> vec<DIM> operator+(const vec<DIM>& a, const vec<DIM>& b) {

@@ -167,6 +167,8 @@ using namespace tls::blat;
 }
 
 - (void)testNormInnerProductNormalize {
+    vec<3> v0 {};
+    
     vec<3> v1 {"1 3 5"};
     XCTAssert(v1.norm(1) == 1. + 3. + 5.);
     XCTAssert(v1.norm(2) == std::sqrt(1. + 9. + 25.));
@@ -179,9 +181,14 @@ using namespace tls::blat;
 
     vec<3> v3 {"2 4 6"};
     XCTAssert(inner(v1, v3) == 1.*2. + 3.*4. + 5.*6.);
-
+    XCTAssert(dist(v0, v3) == norm(v3));
+    
     vec<6> v4 {"1 5 2 4 7 6"};
     XCTAssert(norm(normalize(v4)) == 1.);
+    
+    vec<4> v5 {1};
+    vec<4> v6 {2};
+    XCTAssert(dist(v5, v6) == std::sqrt(4 * 1.));
 }
 
 - (void)testMatrixCreationIndexing {
