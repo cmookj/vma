@@ -29,6 +29,7 @@
 #include <string>
 #include <utility>
 #include <iostream>
+#include <initializer_list>
 
 #if defined(__APPLE__)
 #include <vecLib/vecLib.h>
@@ -120,6 +121,14 @@ public:
 
     vec(const double* vp) {
         std::for_each(_elem.begin(), _elem.end(), [&vp](double& e) { e = *(vp++); });
+    }
+    
+    vec(const std::initializer_list<double>& il) {
+        if (il.size() == 1)
+            _elem.fill(*il.begin());
+        
+        else if (il.size() <= DIM)
+            std::transform(il.begin(), il.end(), _elem.begin(), [](const double& v) -> double { return v; });
     }
 
     vec(const char* fmt) {
@@ -486,6 +495,11 @@ public:
 
     mat(const double* vp) {
         std::for_each(_elem.begin(), _elem.end(), [&vp](double& e) { e = *(vp++); });
+    }
+    
+    mat(const std::initializer_list<double>& il) {
+        if (il.size() <= DIM_ROWS * DIM_COLS)
+            std::transform(il.begin(), il.end(), _elem.begin(), [](const double& v) -> double { return v; });
     }
 
     mat(const char* fmt) {
