@@ -131,9 +131,12 @@ public:
     std::array<double, DIM>&       elem() { return _elem; }
     const std::array<double, DIM>& elem() const { return _elem; }
 
-    // Index operators
-    double& operator[](const std::size_t n) { return _elem[n]; }
-    double& operator()(const std::size_t n) { return _elem[n - 1]; }
+    // Subscript operators
+    double& operator[](const std::size_t n) { return const_cast<double&>(static_cast<const vec&>(*this)[n]); }
+    double& operator()(const std::size_t n) { return const_cast<double&>(static_cast<const vec&>(*this)(n)); }
+    const double& operator[](const std::size_t n) const { return _elem[n]; }
+    const double& operator()(const std::size_t n) const { return _elem[n - 1]; }
+
 
     // Dimension
     std::size_t dim() const { return _elem.size(); }
@@ -492,8 +495,12 @@ public:
 
      @details Note that the elements of the matrix are in column major order.
      */
-    double& operator()(const std::size_t i, const std::size_t j) {
+    const double& operator()(const std::size_t i, const std::size_t j) const {
         return _elem[(i - 1) + (j - 1) * _count_rows];
+    }
+    
+    double& operator()(const std::size_t i, const std::size_t j) {
+        return const_cast<double&>(static_cast<const mat&>(*this)(i, j));
     }
 
     // Dimension
