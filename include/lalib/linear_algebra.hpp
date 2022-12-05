@@ -484,9 +484,9 @@ public:
     mat& operator=(mat&&) noexcept = default;
 
     // Other constructors
-    mat(const std::size_t m, const std::size_t n, std::array<double, DIM_ROWS * DIM_COLS>&& elm)
-        : _count_rows {m}
-        , _count_cols {n}
+    mat(std::array<double, DIM_ROWS * DIM_COLS>&& elm)
+        : _count_rows {DIM_ROWS}
+        , _count_cols {DIM_COLS}
         , _elem {elm} { }
 
     mat(const double v) {
@@ -751,7 +751,7 @@ template <std::size_t DIM> mat<DIM, DIM> diag(std::array<double, DIM>& val) {
     for (std::size_t i = 0; i < DIM; ++i)
         elm[i * DIM + i] = val[i];
 
-    return mat<DIM, DIM> {DIM, DIM, std::move(elm)};
+    return mat<DIM, DIM> {std::move(elm)};
 }
 
 /**
@@ -779,7 +779,7 @@ template <std::size_t DIM> mat<DIM, DIM> diag(double* val) {
     for (std::size_t i = 0; i < DIM; ++i)
         elm[i * DIM + i] = val[i];
 
-    return mat<DIM, DIM> {DIM, DIM, std::move(elm)};
+    return mat<DIM, DIM> {std::move(elm)};
 }
 
 /**
@@ -796,7 +796,7 @@ template <std::size_t DIM_ROWS, std::size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> ra
         elm[i] = ud(genu);
     }
 
-    return mat<DIM_ROWS, DIM_COLS> {DIM_ROWS, DIM_COLS, std::move(elm)};
+    return mat<DIM_ROWS, DIM_COLS> {std::move(elm)};
 }
 
 /**
@@ -812,7 +812,7 @@ template <std::size_t DIM_ROWS, std::size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> ra
         elm[i] = nd(genn);
     }
 
-    return mat<DIM_ROWS, DIM_COLS> {DIM_ROWS, DIM_COLS, std::move(elm)};
+    return mat<DIM_ROWS, DIM_COLS> {std::move(elm)};
 }
 
 // -----------------------------------------------------------------------------
@@ -959,7 +959,7 @@ mat<DIM_ROWS, DIM_COLS> operator*(const mat<DIM_ROWS, DIM>& m1, const mat<DIM, D
                 0.,
                 elm.data(),
                 DIM_ROWS);
-    return mat<DIM_ROWS, DIM_COLS> {DIM_ROWS, DIM_COLS, std::move(elm)};
+    return mat<DIM_ROWS, DIM_COLS> {std::move(elm)};
 }
 
 /**

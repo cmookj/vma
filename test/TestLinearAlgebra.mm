@@ -213,6 +213,13 @@ using namespace tls::blat;
         for (std::size_t j = 1; j <= m2.count_cols(); ++j)
             XCTAssert(m2(i, j) == ((i - 1.) + j) * std::pow(-1., i + j));
     
+    std::array<double, 9> el0 {1., 2., 3., 4., 5., 6., 7., 8., 9.};
+    std::array<double, 9> el00 {1., 2., 3., 4., 5., 6., 7., 8., 9.};
+    mat<3,3> m21{std::move(el0)};
+    XCTAssert(m21.count_rows() == 3);
+    XCTAssert(m21.count_cols() == 3);
+    XCTAssert(m21.elem() == el00);
+    
     auto m3 = identity<10>();
     for (std::size_t i = 1; i <= m3.count_rows(); ++i )
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
@@ -222,17 +229,17 @@ using namespace tls::blat;
     
     auto m5 = randn<100, 100>();
     
-    std::array<double, 10> el {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
-    auto m6 = diag<10>(el);
+    std::array<double, 10> el1 {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
+    auto m6 = diag<10>(el1);
     for (std::size_t i = 1; i <= m6.count_rows(); ++i)
         for (std::size_t j = 1; j <= m6.count_cols(); ++j)
-            XCTAssert(m6(i, j) == (i == j ? el[i - 1] : 0.));
+            XCTAssert(m6(i, j) == (i == j ? el1[i - 1] : 0.));
     
     double el2[] = {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
     auto m7 = diag<10>(el2);
     for (std::size_t i = 1; i <= m7.count_rows(); ++i)
         for (std::size_t j = 1; j <= m7.count_cols(); ++j)
-            XCTAssert(m7(i, j) == (i == j ? el[i - 1] : 0.));
+            XCTAssert(m7(i, j) == (i == j ? el1[i - 1] : 0.));
 }
 
 - (void)testMatrixTranspose {
