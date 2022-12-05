@@ -44,13 +44,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0E39C7FA293D807F0031FBFB /* src */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = src;
-			sourceTree = "<group>";
-		};
 		0EADEF982931EBC800B0374E = {
 			isa = PBXGroup;
 			children = (
@@ -58,7 +51,6 @@
 				0EADEFB12931EC1400B0374E /* doc */,
 				0EADEFAF2931EC1400B0374E /* include */,
 				0EADEFB32931EC1500B0374E /* README.md */,
-				0E39C7FA293D807F0031FBFB /* src */,
 				0EADEFB22931EC1400B0374E /* test */,
 				0EADEFA22931EBC800B0374E /* Products */,
 				0EADEFCC2931F09D00B0374E /* Frameworks */,
