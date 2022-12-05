@@ -757,6 +757,21 @@ template <std::size_t DIM> mat<DIM, DIM> diag(std::array<double, DIM>& val) {
 /**
  @brief Creates a square matrix with only diagonal elements
  */
+template <std::size_t DIM> mat<DIM, DIM> diag(std::initializer_list<double>& il) {
+    std::array<double, DIM * DIM> elm {};
+    elm.fill(0.);
+    
+    std::vector<double> val {il};
+
+    for (std::size_t i = 0; i < val.size(); ++i)
+        elm[i * DIM + i] = val[i];
+
+    return mat<DIM, DIM> {DIM, DIM, std::move(elm)};
+}
+
+/**
+ @brief Creates a square matrix with only diagonal elements
+ */
 template <std::size_t DIM> mat<DIM, DIM> diag(double* val) {
     std::array<double, DIM * DIM> elm {};
     elm.fill(0.);
