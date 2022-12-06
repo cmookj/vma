@@ -323,15 +323,6 @@ protected:
     }
 };
 
-/**
- @brief Outputs a vector to stream
- */
-template <std::size_t DIM>
-std::ostream& operator<<(std::ostream& strm, const vec<DIM>& v) {
-    v.print(output_fmt::sht, strm);
-    return strm;
-}
-
 // -----------------------------------------------------------------------------
 //                                                       Special Vector Creation
 // -----------------------------------------------------------------------------
