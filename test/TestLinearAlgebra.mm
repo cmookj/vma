@@ -55,15 +55,15 @@ using namespace tls::blat;
     for (std::size_t i = 1; i <= v3.dim(); ++i)
         XCTAssert(v3(i) == a[i-1]);
     
-    vec<5> v4("1, 3, 5, 7, 9");
+    vec<5> v4{1, 3, 5, 7, 9};
     for (std::size_t i = 1; i <= v4.dim(); ++i)
         XCTAssert(v4(i) == 2.*i - 1.);
     
-    vec<5> v5("1.0e1 3.0e2 5.0e3 7.0e4 9.0e5");
+    vec<5> v5{1.0e1, 3.0e2, 5.0e3, 7.0e4, 9.0e5};
     for (std::size_t i = 1; i <= v5.dim(); ++i)
         XCTAssert(v5(i) == (2.*i - 1.)*std::pow(10., i));
     
-    vec<5> v6("-1 3 -5 7 -9");
+    vec<5> v6{-1, 3, -5, 7, -9};
     for (std::size_t i = 1; i <= v6.dim(); ++i)
         XCTAssert(v6(i) == (2.*i - 1.) * std::pow(-1., i));
     
@@ -79,7 +79,7 @@ using namespace tls::blat;
 }
 
 - (void)testIndexAssignmentCompariton {
-    vec<5> v1("1, 2, 3, 4, 5");
+    vec<5> v1{1, 2, 3, 4, 5};
     
     v1(2)= -v1(2);
     v1(4)= -v1(4);
@@ -99,7 +99,7 @@ using namespace tls::blat;
 
 
 - (void)testAdditionSubtraction {
-    vec<5> v1("1, 3, 5, 7, 9");
+    vec<5> v1{1, 3, 5, 7, 9};
     vec<5> v2(1.);
     
     auto v3 {v1 + v2};
@@ -152,8 +152,8 @@ using namespace tls::blat;
 }
 
 - (void)testVecMatMultiplication {
-    mat<3, 3> m1("1 2 3; 4 5 6; 7 8 9");
-    vec<3> v1("1 3 5");
+    mat<3, 3> m1{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    vec<3> v1{1, 3, 5};
  
     auto v2 = m1*v1; // 22, 49, 76
     XCTAssert(v2[0] == 22.);
@@ -169,21 +169,21 @@ using namespace tls::blat;
 - (void)testNormInnerProductNormalize {
     vec<3> v0 {};
     
-    vec<3> v1 {"1 3 5"};
+    vec<3> v1 {1, 3, 5};
     XCTAssert(v1.norm(1) == 1. + 3. + 5.);
     XCTAssert(v1.norm(2) == std::sqrt(1. + 9. + 25.));
     XCTAssert(v1.norm_inf() == 5.);
     
-    vec<3> v2 {"-1. 3 -5."};
+    vec<3> v2 {-1., 3, -5.};
     XCTAssert(v2.norm(1) == 1. + 3. + 5.);
     XCTAssert(v2.norm(2) == std::sqrt(1. + 9. + 25.));
     XCTAssert(v2.norm_inf() == -5.);
 
-    vec<3> v3 {"2 4 6"};
+    vec<3> v3 {2, 4, 6};
     XCTAssert(inner(v1, v3) == 1.*2. + 3.*4. + 5.*6.);
     XCTAssert(dist(v0, v3) == norm(v3));
     
-    vec<6> v4 {"1 5 2 4 7 6"};
+    vec<6> v4 {1, 5, 2, 4, 7, 6};
     XCTAssert(norm(normalize(v4)) == 1.);
     
     vec<4> v5 {1};
@@ -197,7 +197,7 @@ using namespace tls::blat;
         for (std::size_t j = 1; j <= m0.count_cols(); ++j)
             XCTAssert(m0(i, j) == 0. );
     
-    mat<3, 4> m1 {"1 2 3 4; 2. 3. 4. 5.; 3 4 5 6;"};
+    mat<3, 4> m1 {1, 2, 3, 4, 2., 3., 4., 5., 3, 4, 5., 6};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i )
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
             XCTAssert(m1(i, j) == (i - 1.) + j);
@@ -208,7 +208,7 @@ using namespace tls::blat;
     std::cout << m1.str(output_fmt::sci) << std::endl;
     std::cout << m1.str(output_fmt::scx) << std::endl;
     
-    mat<3, 4> m2 {" 1. -2. 3. -4.; -2 3 -4 5; 3 -4 5 -6;"};
+    mat<3, 4> m2 {1., -2, 3, -4, -2., 3, -4, 5., 3., -4, 5, -6};
     for (std::size_t i = 1; i <= m2.count_rows(); ++i )
         for (std::size_t j = 1; j <= m2.count_cols(); ++j)
             XCTAssert(m2(i, j) == ((i - 1.) + j) * std::pow(-1., i + j));
@@ -244,14 +244,14 @@ using namespace tls::blat;
 
 - (void)testMatrixTranspose {
     mat<8, 10> m1 {
-        "1  2  3  4  5  6  7  8  9 10;"
-        "2  3  4  5  6  7  8  9 10 11;"
-        "3  4  5  6  7  8  9 10 11 12;"
-        "4  5  6  7  8  9 10 11 12 13;"
-        "5  6  7  8  9 10 11 12 13 14;"
-        "6  7  8  9 10 11 12 13 14 15;"
-        "7  8  9 10 11 12 13 14 15 16;"
-        "8  9 10 11 12 13 14 15 16 17;"
+        1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
+        2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
+        3,  4,  5,  6,  7,  8,  9, 10, 11, 12,
+        4,  5,  6,  7,  8,  9, 10, 11, 12, 13,
+        5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+        6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+        7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+        8,  9, 10, 11, 12, 13, 14, 15, 16, 17
     };
     auto m2 = transpose(m1);
     
@@ -280,16 +280,16 @@ using namespace tls::blat;
         "8  9 10 11 12 13 14 15 16 17;"
     };
     mat<10, 6> m2 {
-        " 1  2  3  4  5  6;"
-        " 2  3  4  5  6  7;"
-        " 3  4  5  6  7  8;"
-        " 4  5  6  7  8  9;"
-        " 5  6  7  8  9 10;"
-        " 6  7  8  9 10 11;"
-        " 7  8  9 10 11 12;"
-        " 8  9 10 11 12 13;"
-        " 9 10 11 12 13 14;"
-        "10 11 12 13 14 15;"
+         1,  2,  3,  4,  5,  6,
+         2,  3,  4,  5,  6,  7,
+         3,  4,  5,  6,  7,  8,
+         4,  5,  6,  7,  8,  9,
+         5,  6,  7,  8,  9, 10,
+         6,  7,  8,  9, 10, 11,
+         7,  8,  9, 10, 11, 12,
+         8,  9, 10, 11, 12, 13,
+         9, 10, 11, 12, 13, 14,
+        10, 11, 12, 13, 14, 15
     };
     
     auto m12 = m1 * m2;

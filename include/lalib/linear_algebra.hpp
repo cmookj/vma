@@ -268,7 +268,7 @@ public:
         strm.setf(options, std::ios_base::floatfield);
         strm.precision(precision);
         
-        auto              print = [&strm, &width](const double& v) { strm.width(width); strm << v << ", "; };
+        auto print = [&strm, &width](const double& v) { strm.width(width); strm << v << ", "; };
         
         strm << "[ ";
         std::for_each(_elem.cbegin(), _elem.cend(), print);
@@ -484,13 +484,32 @@ public:
         std::for_each(_elem.begin(), _elem.end(), [&v](double& e) { e = v; });
     }
 
+    /**
+     @brief Constructs a new matrix from an old-fashioned array of doubles
+     
+     @details This function assumes the array is in row major order.
+     */
     mat(const double* vp) {
-        std::for_each(_elem.begin(), _elem.end(), [&vp](double& e) { e = *(vp++); });
+        std::size_t idx {0};
+        for (std::size_t j = 0; j < DIM_COLS; ++j)
+            for (std::size_t i = 0; i < DIM_ROWS; ++i)
+                _elem[j * DIM_ROWS + i] = vp[idx++];
     }
-    
+
+    /**
+     @brief Constructs a new matrix from an initializer_list of doubles
+     
+     @details This function assumes the list is in row major order.
+     */
     mat(const std::initializer_list<double>& il) {
-        if (il.size() <= DIM_ROWS * DIM_COLS)
-            std::transform(il.begin(), il.end(), _elem.begin(), [](const double& v) -> double { return v; });
+        std::size_t idx {0};
+        std::size_t row {0};
+        std::size_t count {DIM_ROWS * DIM_COLS};
+        for (auto it = il.begin(); it < il.end(); ++it) {
+            _elem[idx] = *it;
+            idx = (idx + DIM_ROWS);
+            if (idx >= count) idx = ++row;
+        }
     }
 
     mat(const char* fmt) {
