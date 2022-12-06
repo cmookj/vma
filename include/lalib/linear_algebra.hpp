@@ -822,7 +822,7 @@ template <std::size_t DIM_ROWS, std::size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> ra
  @brief Transposes a matrix
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
-mat<DIM_COLS, DIM_ROWS> transpose(mat<DIM_ROWS, DIM_COLS>& m) {
+mat<DIM_COLS, DIM_ROWS> transpose(const mat<DIM_ROWS, DIM_COLS>& m) {
     mat<DIM_COLS, DIM_ROWS> t {};
 
     // The number of columns to copy simultaneously (to utilize cache)
@@ -850,7 +850,7 @@ mat<DIM_COLS, DIM_ROWS> transpose(mat<DIM_ROWS, DIM_COLS>& m) {
  @brief Transposes a matrix
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
-mat<DIM_COLS, DIM_ROWS> transpose_naive(mat<DIM_ROWS, DIM_COLS>& m) {
+mat<DIM_COLS, DIM_ROWS> transpose_naive(const mat<DIM_ROWS, DIM_COLS>& m) {
     mat<DIM_COLS, DIM_ROWS> t {};
 
     // Copy rows one by one
@@ -1190,6 +1190,14 @@ svd(const mat<DIM_ROWS, DIM_COLS>& M, mat<DIM_ROWS, DIM_ROWS>& U, mat<DIM_COLS, 
     Vt = transpose(V);
 
     return vec<std::min(DIM_ROWS, DIM_COLS)>(s.get());
+}
+
+/**
+ @brief Calculates Frobenius norm
+ */
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
+double norm_frobenius(const mat<DIM_ROWS, DIM_COLS>& M) {
+    return std::sqrt(tr(transpose(M)*M));
 }
 
 } // namespace tls::blat

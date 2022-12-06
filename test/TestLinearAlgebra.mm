@@ -487,6 +487,14 @@ using namespace tls::blat;
     XCTAssert(norm(S - singular_values) < TOLERANCE * 1e2);
 }
 
+- (void)testMatrixNorm {
+    mat<2, 2> m1 = {1., 2., 3., 4.};
+    XCTAssert(std::fabs(norm_frobenius(m1) - 5.47723) < 0.0001);
+    
+    mat<2, 3> m2 = {1., 4., 6., 7., 9., 10.};
+    XCTAssert(std::fabs(norm_frobenius(m2) - 16.8226) < 0.0001);
+}
+
 - (void)testPerformanceMatrixMultiplication {
     // This is an example of a performance test case.
     [self measureBlock:^{
