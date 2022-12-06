@@ -407,6 +407,17 @@ using namespace tls::blat;
             XCTAssert(m12(i, j) == -(i + j - 1.));
 }
 
+- (void)testMatrixVectorMultiplication {
+    auto m1 = identity<3>();
+    auto v1 = vec<3>{1.};
+    
+    auto v11 = m1 * v1;
+    XCTAssert(v11 == v1);
+    
+    auto v12 = v1 * m1;
+    XCTAssert(v12 == v1);
+}
+
 - (void)testMatrixTrace {
     auto m = identity<10>();
     XCTAssert(tr(m) == 10.);
