@@ -12,7 +12,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <fstream>
 #include <iomanip>
 #include <memory>
 #include <random>
@@ -21,15 +20,16 @@
 // -----------------------------------------------------------------------------
 #include <algorithm>
 #include <array>
+#include <complex>
 #include <exception>
 #include <functional>
+#include <initializer_list>
+#include <iostream>
 #include <limits>
 #include <numeric>
 #include <sstream>
 #include <string>
 #include <utility>
-#include <iostream>
-#include <initializer_list>
 
 #if defined(__APPLE__)
 #include <vecLib/vecLib.h>
@@ -80,12 +80,7 @@ const unsigned INF =
 enum class output_fmt { sht, nml, ext, sci, scx };
 
 // Eigenvalue problem specification to control the problem setup and solution
-enum class eigen_spec {
-    EIGENVALUE_ONLY,
-    EIGENVALUE_AND_EIGENVEC,
-    EIGENVALUE_AND_LEFT_EIGENVEC,
-    EIGENVALUE_AND_RIGHT_EIGENVEC
-};
+enum class eigen { val, vec, lvec, rvec };
 
 // =============================================================================
 //                                                     C L A S S  :  V E C T O R
@@ -122,13 +117,14 @@ public:
     vec(const double* vp) {
         std::for_each(_elem.begin(), _elem.end(), [&vp](double& e) { e = *(vp++); });
     }
-    
+
     vec(const std::initializer_list<double>& il) {
         if (il.size() == 1)
             _elem.fill(*il.begin());
-        
+
         else if (il.size() <= DIM)
-            std::transform(il.begin(), il.end(), _elem.begin(), [](const double& v) -> double { return v; });
+            std::transform(
+                il.begin(), il.end(), _elem.begin(), [](const double& v) -> double { return v; });
     }
 
     vec(const char* fmt) {
@@ -141,11 +137,14 @@ public:
     const std::array<double, DIM>& elem() const { return _elem; }
 
     // Subscript operators
-    double& operator[](const std::size_t n) { return const_cast<double&>(static_cast<const vec&>(*this)[n]); }
-    double& operator()(const std::size_t n) { return const_cast<double&>(static_cast<const vec&>(*this)(n)); }
+    double& operator[](const std::size_t n) {
+        return const_cast<double&>(static_cast<const vec&>(*this)[n]);
+    }
+    double& operator()(const std::size_t n) {
+        return const_cast<double&>(static_cast<const vec&>(*this)(n));
+    }
     const double& operator[](const std::size_t n) const { return _elem[n]; }
     const double& operator()(const std::size_t n) const { return _elem[n - 1]; }
-
 
     // Dimension
     std::size_t dim() const { return _elem.size(); }
@@ -233,43 +232,46 @@ public:
         int precision;
 
         std::ios_base::fmtflags options;
-        
-        switch(fmt){
-            case output_fmt::sht:
-                options = std::ios_base::fixed;
-                precision = 2;
-                width = 8;
-                break;
-                
-            case output_fmt::nml:
-                options = std::ios_base::fixed;
-                precision = 4;
-                width = 10;
-                break;
-                
-            case output_fmt::ext:
-                options = std::ios_base::fixed;
-                precision = 8;
-                width = 14;
-                break;
-                
-            case output_fmt::sci:
-                options = std::ios_base::scientific;
-                precision = 4;
-                width = 10;
-                break;
-                
-            case output_fmt::scx:
-                options = std::ios_base::scientific;
-                precision = 8;
-                width = 18;
+
+        switch (fmt) {
+        case output_fmt::sht:
+            options   = std::ios_base::fixed;
+            precision = 2;
+            width     = 8;
+            break;
+
+        case output_fmt::nml:
+            options   = std::ios_base::fixed;
+            precision = 4;
+            width     = 10;
+            break;
+
+        case output_fmt::ext:
+            options   = std::ios_base::fixed;
+            precision = 8;
+            width     = 14;
+            break;
+
+        case output_fmt::sci:
+            options   = std::ios_base::scientific;
+            precision = 4;
+            width     = 10;
+            break;
+
+        case output_fmt::scx:
+            options   = std::ios_base::scientific;
+            precision = 8;
+            width     = 18;
         }
-        
+
         strm.setf(options, std::ios_base::floatfield);
         strm.precision(precision);
-        
-        auto print = [&strm, &width](const double& v) { strm.width(width); strm << v << ", "; };
-        
+
+        auto print = [&strm, &width](const double& v) {
+            strm.width(width);
+            strm << v << ", ";
+        };
+
         strm << "[ ";
         std::for_each(_elem.cbegin(), _elem.cend(), print);
         strm << "]";
@@ -486,7 +488,7 @@ public:
 
     /**
      @brief Constructs a new matrix from an old-fashioned array of doubles
-     
+
      @details This function assumes the array is in row major order.
      */
     mat(const double* vp) {
@@ -498,7 +500,7 @@ public:
 
     /**
      @brief Constructs a new matrix from an initializer_list of doubles
-     
+
      @details This function assumes the list is in row major order.
      */
     mat(const std::initializer_list<double>& il) {
@@ -507,8 +509,9 @@ public:
         std::size_t count {DIM_ROWS * DIM_COLS};
         for (auto it = il.begin(); it < il.end(); ++it) {
             _elem[idx] = *it;
-            idx = (idx + DIM_ROWS);
-            if (idx >= count) idx = ++row;
+            idx        = (idx + DIM_ROWS);
+            if (idx >= count)
+                idx = ++row;
         }
     }
 
@@ -529,7 +532,7 @@ public:
     const double& operator()(const std::size_t i, const std::size_t j) const {
         return _elem[(i - 1) + (j - 1) * _count_rows];
     }
-    
+
     double& operator()(const std::size_t i, const std::size_t j) {
         return const_cast<double&>(static_cast<const mat&>(*this)(i, j));
     }
@@ -541,6 +544,31 @@ public:
 
     std::size_t count_rows() const { return _count_rows; }
     std::size_t count_cols() const { return _count_cols; }
+
+    // Extraction of a column or a row as a vector
+    vec<DIM_ROWS> col(const std::size_t j) const {
+        std::array<double, DIM_ROWS> el {};
+
+        auto head = _elem.cbegin();
+        if ((1 <= j) && (j <= DIM_COLS))
+            std::copy_n(head + (j - 1) * DIM_ROWS, DIM_ROWS, el.begin());
+
+        return vec<DIM_ROWS> {std::move(el)};
+    }
+
+    vec<DIM_COLS> row(const std::size_t i) const {
+        std::array<double, DIM_COLS> el {};
+
+        if ((1 <= i) && (i <= DIM_ROWS)) {
+            auto it = _elem.cbegin() + (i - 1);
+            for (std::size_t j = 0; j < DIM_COLS; ++j) {
+                std::copy_n(it, 1, el.begin() + j);
+                it += DIM_ROWS;
+            }
+        }
+
+        return vec<DIM_COLS> {std::move(el)};
+    }
 
     // Equality
     bool operator==(const mat& rhs) const {
@@ -611,49 +639,49 @@ public:
         int precision;
 
         std::ios_base::fmtflags options;
-        
-        switch(fmt){
-            case output_fmt::sht:
-                options = std::ios_base::fixed;
-                precision = 2;
-                width = 8;
-                break;
-                
-            case output_fmt::nml:
-                options = std::ios_base::fixed;
-                precision = 4;
-                width = 10;
-                break;
-                
-            case output_fmt::ext:
-                options = std::ios_base::fixed;
-                precision = 8;
-                width = 14;
-                break;
-                
-            case output_fmt::sci:
-                options = std::ios_base::scientific;
-                precision = 4;
-                width = 10;
-                break;
-                
-            case output_fmt::scx:
-                options = std::ios_base::scientific;
-                precision = 8;
-                width = 18;
+
+        switch (fmt) {
+        case output_fmt::sht:
+            options   = std::ios_base::fixed;
+            precision = 2;
+            width     = 8;
+            break;
+
+        case output_fmt::nml:
+            options   = std::ios_base::fixed;
+            precision = 4;
+            width     = 10;
+            break;
+
+        case output_fmt::ext:
+            options   = std::ios_base::fixed;
+            precision = 8;
+            width     = 14;
+            break;
+
+        case output_fmt::sci:
+            options   = std::ios_base::scientific;
+            precision = 4;
+            width     = 10;
+            break;
+
+        case output_fmt::scx:
+            options   = std::ios_base::scientific;
+            precision = 8;
+            width     = 18;
         }
-        
+
         strm.setf(options, std::ios_base::floatfield);
         strm.precision(precision);
-        
+
         for (std::size_t i = 0; i < _count_rows; ++i) {
             strm << "[ ";
-            
+
             for (std::size_t j = 0; j < _count_cols; ++j) {
                 strm.width(width);
 
-            strm << _elem[j * _count_rows + i] << ", ";
-        }
+                strm << _elem[j * _count_rows + i] << ", ";
+            }
 
             strm << "]\n";
         }
@@ -770,7 +798,7 @@ template <std::size_t DIM> mat<DIM, DIM> diag(std::array<double, DIM>& val) {
 template <std::size_t DIM> mat<DIM, DIM> diag(std::initializer_list<double>& il) {
     std::array<double, DIM * DIM> elm {};
     elm.fill(0.);
-    
+
     std::vector<double> val {il};
 
     for (std::size_t i = 0; i < val.size(); ++i)
@@ -885,7 +913,8 @@ mat<DIM_ROWS, DIM_COLS> operator-(const mat<DIM_ROWS, DIM_COLS>& m) {
  @brief Adds two matrices
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
-mat<DIM_ROWS, DIM_COLS> operator+(const mat<DIM_ROWS, DIM_COLS>& a, const mat<DIM_ROWS, DIM_COLS>& b) {
+mat<DIM_ROWS, DIM_COLS> operator+(const mat<DIM_ROWS, DIM_COLS>& a,
+                                  const mat<DIM_ROWS, DIM_COLS>& b) {
     auto result {a};
     result += b;
     return result;
@@ -912,7 +941,8 @@ mat<DIM_ROWS, DIM_COLS> operator+(const double s, const mat<DIM_ROWS, DIM_COLS>&
  @brief Subtracts a matrix from another
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
-mat<DIM_ROWS, DIM_COLS> operator-(const mat<DIM_ROWS, DIM_COLS>& a, const mat<DIM_ROWS, DIM_COLS>& b) {
+mat<DIM_ROWS, DIM_COLS> operator-(const mat<DIM_ROWS, DIM_COLS>& a,
+                                  const mat<DIM_ROWS, DIM_COLS>& b) {
     auto result {a};
     result -= b;
     return result;
@@ -1203,11 +1233,219 @@ svd(const mat<DIM_ROWS, DIM_COLS>& M, mat<DIM_ROWS, DIM_ROWS>& U, mat<DIM_COLS, 
 }
 
 /**
+ @brief Checks whether the matrix is symmetric
+ */
+template <std::size_t DIM> bool is_symmetric(const mat<DIM, DIM>& M) {
+    return M == transpose(M);
+}
+
+/**
+ @brief Class to store eigenvalues and eigenvectors
+ */
+template <std::size_t DIM> struct eigensystem {
+    // Eigenvalues
+    std::array<std::complex<double>, DIM> eigvals;
+
+    // Eigenvectors
+    using eigvec = std::array<std::complex<double>, DIM>;
+    std::array<eigvec, DIM> eigvecs_r;
+    std::array<eigvec, DIM> eigvecs_l;
+};
+
+/**
+ @brief Solves Eigensystem problem
+ */
+template <std::size_t DIM> eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
+    eigensystem<DIM> es;
+
+    integer_t     N {DIM};
+    mat<DIM, DIM> A {M};
+    integer_t     LDA {N};
+    integer_t     INFO;
+
+    if (is_symmetric(M)) {
+        char JOBZ;
+        if (js == eigen::val) {
+            JOBZ = 'N';
+        }
+        else {
+            JOBZ = 'V';
+        }
+        char UPLO = 'U';
+
+        auto W = std::make_unique<real_t[]>(N);
+
+        integer_t LWORK {3 * N};
+        auto      WORK = std::make_unique<real_t[]>(LWORK);
+
+        dsyev_(&JOBZ, &UPLO, &N, A.elem().data(), &LDA, W.get(), WORK.get(), &LWORK, &INFO);
+
+        if (INFO == 0) {
+            for (std::size_t j = 0; j < static_cast<std::size_t>(N); ++j) {
+                es.eigvals[j] = std::complex {W[j]};
+
+                if (js != eigen::val)
+                    for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
+                        es.eigvecs_r[j][i] = std::complex {A(i + 1, j + 1)};
+            }
+        }
+        else
+            throw std::runtime_error {"Failed to calculate eigenvalues."};
+    }
+    else {
+        char          JOBVL, JOBVR;
+        integer_t     LDVL {N};
+        integer_t     LDVR {N};
+        mat<DIM, DIM> VL {};
+        mat<DIM, DIM> VR {};
+
+        switch (js) {
+        case eigen::val:
+            JOBVL = JOBVR = 'N';
+            break;
+
+        case eigen::vec:
+            JOBVL = JOBVR = 'V';
+            break;
+
+        case eigen::lvec:
+            JOBVL = 'V';
+            JOBVR = 'N';
+            break;
+
+        case eigen::rvec:
+            JOBVL = 'N';
+            JOBVR = 'V';
+            break;
+        }
+        auto WR = std::make_unique<double[]>(N);
+        auto WI = std::make_unique<double[]>(N);
+
+        integer_t LWORK {4 * N};
+        auto      WORK = std::make_unique<double[]>(LWORK);
+
+        dgeev_(&JOBVL,
+               &JOBVR,
+               &N,
+               A.elem().data(),
+               &LDA,
+               WR.get(),
+               WI.get(),
+               VL.elem().data(),
+               &LDVL,
+               VR.elem().data(),
+               &LDVR,
+               WORK.get(),
+               &LWORK,
+               &INFO);
+
+        if (INFO == 0) {
+            for (std::size_t j = 0; j < static_cast<std::size_t>(N); ++j) {
+                // Eigenvalue
+                es.eigvals[j] = std::complex {WR[j], WI[j]};
+
+                switch (js) {
+                case eigen::val:
+                    break;
+
+                case eigen::vec:
+                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j + 1]) {
+                        // Complex conjugate
+
+                        // Next Eigenvalue
+                        es.eigvals[j + 1] = std::complex {WR[j + 1], WI[j + 1]};
+
+                        // Right Eigenvectors
+                        for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i) {
+                            es.eigvecs_r[j][i] = std::complex {VR(i + 1, j + 1), VR(i + 1, j + 2)};
+                            es.eigvecs_r[j + 1][i] =
+                                std::complex {VR(i + 1, j + 1), -VR(i + 1, j + 2)};
+                        }
+
+                        // Left Eigenvectors
+                        for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i) {
+                            es.eigvecs_l[j][i] = std::complex {VL(i + 1, j + 1), VL(i + 1, j + 2)};
+                            es.eigvecs_l[j + 1][i] =
+                                std::complex {VL(i + 1, j + 1), -VL(i + 1, j + 2)};
+                        }
+
+                        // Skip the next Eigenvalue & Eigenvectors
+                        j++;
+                    }
+                    else { // Real
+                        // Right Eigenvectors
+                        for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
+                            es.eigvecs_r[j][i] = std::complex {VR(i + 1, j + 1)};
+
+                        // Left Eigenvectors
+                        for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
+                            es.eigvecs_l[j][i] = std::complex {VL(i + 1, j + 1)};
+                    }
+                    break;
+
+                case eigen::lvec:
+                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j + 1]) {
+                        // Complex conjugate
+
+                        // Next Eigenvalue
+                        es.eigvals[j + 1] = std::complex {WR[j + 1], WI[j + 1]};
+
+                        // Left Eigenvectors
+                        for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i) {
+                            es.eigvecs_l[j][i] = std::complex {VL(i + 1, j + 1), VL(i + 1, j + 2)};
+                            es.eigvecs_l[j + 1][i] =
+                                std::complex {VL(i + 1, j + 1), -VL(i + 1, j + 2)};
+                        }
+
+                        // Skip the next Eigenvalue & Eigenvectors
+                        j++;
+                    }
+                    else { // Real
+                        // Left Eigenvectors
+                        for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
+                            es.eigvecs_l[j][i] = std::complex {VL(i + 1, j + 1)};
+                    }
+                    break;
+
+                case eigen::rvec:
+                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j + 1]) {
+                        // Complex conjugate
+
+                        // Next Eigenvalue
+                        es.eigvals[j + 1] = std::complex {WR[j + 1], WI[j + 1]};
+
+                        // Right Eigenvectors
+                        for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i) {
+                            es.eigvecs_r[j][i] = std::complex {VR(i + 1, j + 1), VR(i + 1, j + 2)};
+                            es.eigvecs_r[j + 1][i] =
+                                std::complex {VR(i + 1, j + 1), -VR(i + 1, j + 2)};
+                        }
+
+                        // Skip the next Eigenvalue & Eigenvectors
+                        j++;
+                    }
+                    else { // Real
+                        // Right Eigenvectors
+                        for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
+                            es.eigvecs_r[j][i] = std::complex {VR(i + 1, j + 1)};
+                    }
+                    break;
+                }
+            }
+        }
+        else
+            throw std::runtime_error {"Failed to calculate eigenvalues."};
+    }
+
+    return es;
+}
+
+/**
  @brief Calculates Frobenius norm
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
 double norm_frobenius(const mat<DIM_ROWS, DIM_COLS>& M) {
-    return std::sqrt(tr(transpose(M)*M));
+    return std::sqrt(tr(transpose(M) * M));
 }
 
 } // namespace tls::blat

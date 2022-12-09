@@ -242,6 +242,51 @@ using namespace tls::blat;
             XCTAssert(m7(i, j) == (i == j ? el1[i - 1] : 0.));
 }
 
+- (void)testMatrixVecExtraction {
+    mat<8, 10> m1 {
+        1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
+        2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
+        3,  4,  5,  6,  7,  8,  9, 10, 11, 12,
+        4,  5,  6,  7,  8,  9, 10, 11, 12, 13,
+        5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+        6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+        7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+        8,  9, 10, 11, 12, 13, 14, 15, 16, 17
+    };
+    
+    // Extraction of columns
+    vec<8> col0 {};
+    XCTAssert(m1.col(0) == col0);
+    
+    vec<8> col11 {};
+    XCTAssert(m1.col(11) == col11);
+    
+    vec<8> col1 {1, 2, 3, 4, 5, 6, 7, 8};
+    XCTAssert(m1.col(1) == col1);
+    
+    vec<8> col3 {3, 4, 5, 6, 7, 8, 9, 10};
+    XCTAssert(m1.col(3) == col3);
+    
+    vec<8> col9 {9, 10, 11, 12, 13, 14, 15, 16};
+    XCTAssert(m1.col(9) == col9);
+    
+    // Extraction of rows
+    vec<10> row0 {};
+    XCTAssert(m1.row(0) == row0);
+    
+    vec<10> row9 {};
+    XCTAssert(m1.row(9) == row9);
+    
+    vec<10> row1 {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    XCTAssert(m1.row(1) == row1);
+    
+    vec<10> row4 {4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+    XCTAssert(m1.row(4) == row4);
+    
+    vec<10> row7 {7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    XCTAssert(m1.row(7) == row7);
+}
+
 - (void)testMatrixTranspose {
     mat<8, 10> m1 {
         1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
@@ -493,6 +538,115 @@ using namespace tls::blat;
     
     mat<2, 3> m2 = {1., 4., 6., 7., 9., 10.};
     XCTAssert(std::fabs(norm_frobenius(m2) - 16.8226) < 0.0001);
+}
+
+- (void)testEigensystem {
+    mat<4, 4> m1 {1, 2, 3, 4, 2, 2, 3, 4, 3, 3, 3, 4, 4, 4, 4, 4};
+    auto es1 = eigen(m1, eigen::vec);
+    
+    vec<4> eval1 {
+        -2.0531157635369963,
+        -0.5146427793906165,
+        -0.2943264517738027,
+        12.862084994701407
+    };
+    
+    mat<4, 4> evec1 {
+        -0.700349, -0.514374,  0.276678, -0.410342,
+        -0.359234,  0.485103, -0.663359, -0.442245,
+         0.156851,  0.541978,  0.650425, -0.508532,
+         0.59654,  -0.454262, -0.245667, -0.614356
+    };
+    
+    for (std::size_t j = 0; j < 4; ++j) {
+        // Eigenvalue
+        XCTAssert(std::fabs(es1.eigvals[j].real() - eval1(j + 1)) < 0.00001);
+        
+        // Eigenvector
+        double factor {0.};
+        if (std::fabs(evec1(1, j + 1)) > EPS)
+            factor = es1.eigvecs_r[j][0].real() / evec1(1, j + 1);
+
+        for (std::size_t i = 0; i < 4; ++i)
+            XCTAssert(std::fabs(es1.eigvecs_r[j][i].real() - factor * evec1(i + 1, j + 1)) < 0.0001);
+    }
+    
+    mat<4, 4> m2 {0, 2, 0, 1, 2, 2, 3, 2, 4, -3, 0, 1, 6, 1, -6, -5};
+    auto es2 = eigen(m2, eigen::vec);
+    
+    vec<4> eval2_re {
+         4.177484212271297,
+        -4.820108319356918,
+        -1.1786879464571869,
+        -1.1786879464571869
+    };
+    
+    vec<4> eval2_im {
+        0.0,
+        0.0,
+        3.19870513679807,
+        -3.19870513679807
+    };
+    
+    mat<4, 4> r_evec2_re {
+         0.47184,    0.132877, -0.0806923, -0.0806923,
+         0.783851,   0.159705,   0.279715,   0.279715,
+        -0.0145526,  0.188274,   0.422325,   0.422325,
+         0.403401,  -0.959891,   -0.71661,   -0.71661,
+    };
+    
+    mat<4, 4> r_evec2_im {
+        0.0, 0.0,  0.0788731, -0.0788731,
+        0.0, 0.0, -0.175539,   0.175539,
+        0.0, 0.0,  0.431654,  -0.431654,
+        0.0, 0.0,  0.0,        0.0
+    };
+
+    mat<4, 4> l_evec2_re {
+        0.739463,  0.827813, -0.741732,  -0.741732,
+        0.622002, -0.309312,  0.458239,   0.458239,
+        0.11783,  -0.277047,  0.0224866,  0.0224866,
+        0.228962, -0.377222, -0.0220256, -0.0220256
+    };
+    
+    mat<4, 4> l_evec2_im {
+        0.0, 0.0,  0.0,        0.0,
+        0.0, 0.0, -0.0363744,  0.0363744,
+        0.0, 0.0,  0.479373,  -0.479373,
+        0.0, 0.0,  0.0879727, -0.0879727
+    };
+
+    for (std::size_t j = 0; j < 4; ++j) {
+        auto eval = es2.eigvals[j];
+        
+        // Eigenvalue
+        XCTAssert(std::fabs(eval.real() - eval2_re(j + 1)) < 0.00001);
+        XCTAssert(std::fabs(eval.imag() - eval2_im(j + 1)) < 0.00001);
+        
+        // Eigenvectors
+        double factor {0.};
+        
+        // Right
+        if (std::fabs(r_evec2_re(1, j + 1)) > EPS)
+            factor = es2.eigvecs_r[j][0].real() / r_evec2_re(1, j + 1);
+
+        for (std::size_t i = 0; i < 4; ++i) {
+            auto evec = es2.eigvecs_r[j];
+            XCTAssert(std::fabs(evec[i].real() - factor * r_evec2_re(i + 1, j + 1)) < 0.0001);
+            XCTAssert(std::fabs(evec[i].imag() - factor * r_evec2_im(i + 1, j + 1)) < 0.0001);
+        }
+        
+        // Left
+        if (std::fabs(l_evec2_re(1, j + 1)) > EPS)
+            factor = es2.eigvecs_l[j][0].real() / l_evec2_re(1, j + 1);
+
+        for (std::size_t i = 0; i < 4; ++i) {
+            auto evec = es2.eigvecs_l[j];
+            XCTAssert(std::fabs(evec[i].real() - factor * l_evec2_re(i + 1, j + 1)) < 0.0001);
+            XCTAssert(std::fabs(evec[i].imag() - factor * l_evec2_im(i + 1, j + 1)) < 0.0001);
+        }
+
+    }
 }
 
 - (void)testPerformanceMatrixMultiplication {
