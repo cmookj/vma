@@ -78,6 +78,27 @@ using namespace tls::blat;
     auto v8 = randn<100>();
 }
 
+- (void)testColinearVectors{
+    vec<9> v1 {1., 2., 3., 4., 5., 6., 7., 8., 9.
+    };
+    
+    vec<9> v2 {2.*v1};
+    
+    XCTAssert(collinear(v1, v2));
+    
+    vec<9> v3 {1., 0., 3., 0., 5., 0., 7., 0., 9.};
+    vec<9> v4 {0.3 * v3};
+    
+    XCTAssert(collinear(v3, v4));
+    
+    cvec<4> cv1 {{1., 2.}, {3., 4.}, {-2., -1.}, {-5., 3.}};
+    cvec<4> cv2 {{2., 4.}, {6., 8.}, {-4., -2.}, {-10., 6.}};
+    XCTAssert(collinear(cv1, cv2));
+    
+    cvec<4> cv3 {{1., 2.}, {3., 0.}, {0., -1.}, {-5., 3.}};
+    cvec<4> cv4 {{2., 4.}, {6., 0.}, {0., -2.}, {-10., 6.}};
+    XCTAssert(collinear(cv3, cv4));
+}
 - (void)testIndexAssignmentCompariton {
     vec<5> v1{1, 2, 3, 4, 5};
     
@@ -647,6 +668,26 @@ using namespace tls::blat;
         }
 
     }
+}
+
+- (void)testComplexVector {
+    cvec<4> cv1 {};
+    for (std::size_t i = 0; i < cv1.dim(); ++i)
+        XCTAssert((cv1[i].real() == 0.) && (cv1[i].imag() == 0.));
+    
+    cvec<4> cv2 {{1, 2}, {2, 3}, {3, 4}, {4, 5}};
+    for (std::size_t i = 0; i < cv2.dim(); ++i)
+        XCTAssert((cv2[i].real() == i + 1.) && (cv2[i].imag() == i + 2.));
+    
+    double re[] = {1, 2, 3, 4};
+    double im[] = {2, 3, 4, 5};
+    cvec<4> cv3 {re, im};
+    XCTAssert(cv2 == cv3);
+    
+    cvec<4> cv4 {re};
+    for (std::size_t i = 0; i < cv4.dim(); ++i)
+        XCTAssert(cv4[i].real() == re[i] && cv4[i].imag() == 0.);
+
 }
 
 - (void)testPerformanceMatrixMultiplication {

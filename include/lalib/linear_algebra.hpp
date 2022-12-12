@@ -75,6 +75,7 @@ const unsigned INF =
 // =============================================================================
 //                                                                  Enumerations
 // =============================================================================
+#pragma mark - Enumerations
 
 // Format specification to generate string representation
 enum class output_fmt { sht, nml, ext, sci, scx };
@@ -85,6 +86,7 @@ enum class eigen { val, vec, lvec, rvec };
 // =============================================================================
 //                                                     C L A S S  :  V E C T O R
 // =============================================================================
+#pragma mark - Vector
 
 /**
  @brief Vector
@@ -448,9 +450,177 @@ template <std::size_t DIM> vec<DIM> operator/(const vec<DIM>& a, const double s)
     return result;
 }
 
+/**
+ @brief Determines whether two real vectors have the same direction
+ */
+template <std::size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) {
+    std::array<double, DIM> ratio {};
+    std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(), ratio.begin(), std::divides<>{});
+    
+    // Originally, the following expression in if statement should be either
+    //   if (std::adjacent_find(ratio.begin(), ratio.end(), std::not_equal_to<>())
+    //       == ratio.end())
+    // or,
+    //   if (std::equal(ratio.begin() + 1, ratio.end(), ratio.begin()))
+    //
+    // But, to ignore 'nan' which is the result of 0./0., we need a special predicate.
+    auto nan_skipping_not_equal_to = [](const double& a, const double& b){
+        if (isnan(a) || isnan(b))
+            return false;
+        else
+            return a != b;
+    };
+
+    if (std::adjacent_find(ratio.begin(), ratio.end(), nan_skipping_not_equal_to) == ratio.end())
+        return true;
+    
+    return false;
+}
+
+
+// =============================================================================
+//                                    C L A S S  :  C O M P L E X    V E C T O R
+// =============================================================================
+#pragma mark - Complex Vector
+
+/**
+ @brief A vector of complex numbers
+ */
+using complex_t = std::complex<double>;
+
+struct pair_t {
+    double re;
+    double im;
+};
+
+template <std::size_t DIM> class cvec {
+protected:
+    std::array<complex_t, DIM> _elem;
+
+public:
+    // Default constructor and destructor
+    cvec() { _elem.fill(complex_t{0.}); }
+    virtual ~cvec() = default;
+
+    // Copy constructor & assignment
+    cvec(const cvec&)            = default;
+    cvec& operator=(const cvec&) = default;
+
+    // Move constructor & assignment
+    cvec(cvec&&) noexcept            = default;
+    cvec& operator=(cvec&&) noexcept = default;
+
+    // Other constructors
+    cvec(std::array<double, DIM>&& elm)
+        : _elem {std::move(elm)} { }
+
+    cvec(const double v) {
+        std::for_each(_elem.begin(), _elem.end(), [=](complex_t& e) { e = complex_t{v}; });
+    }
+
+    cvec(const double* vp) {
+        std::for_each(_elem.begin(), _elem.end(), [&](complex_t& e) { e = complex_t(*(vp++)); });
+    }
+    
+    cvec(const double* vp_r, const double* vp_i) {
+        std::for_each(_elem.begin(), _elem.end(), [&](complex_t& e) { e = complex_t(*(vp_r++), *(vp_i++)); });
+    }
+
+    cvec(const std::initializer_list<double>& il) {
+        if (il.size() == DIM)
+            std::transform(
+                il.begin(), il.end(), _elem.begin(), [](const double& v) -> complex_t { return complex_t(v); });
+    }
+    
+    cvec(const std::initializer_list<pair_t>& il) {
+        if (il.size() == DIM)
+            std::transform(
+                il.begin(), il.end(), _elem.begin(), [](const pair_t& v) -> complex_t { return complex_t(v.re, v.im); });
+    }
+
+    // Access methods
+    std::array<complex_t, DIM>&       elem() { return _elem; }
+    const std::array<complex_t, DIM>& elem() const { return _elem; }
+
+    // Subscript operators
+    complex_t& operator[](const std::size_t n) {
+        return const_cast<complex_t&>(static_cast<const cvec&>(*this)[n]);
+    }
+    complex_t& operator()(const std::size_t n) {
+        return const_cast<complex_t&>(static_cast<const cvec&>(*this)(n));
+    }
+    const complex_t& operator[](const std::size_t n) const { return _elem[n]; }
+    const complex_t& operator()(const std::size_t n) const { return _elem[n - 1]; }
+
+    // Dimension
+    std::size_t dim() const { return _elem.size(); }
+
+    // Equality
+    bool operator==(const cvec& rhs) const { return _elem == rhs._elem; }
+    bool operator!=(const cvec& rhs) const { return !(_elem == rhs._elem); }
+    
+    // Binary arithmetic operators
+    cvec& operator+=(const cvec& rhs) {
+        std::transform(
+            _elem.cbegin(), _elem.cend(), rhs._elem.cbegin(), _elem.begin(), std::plus<> {});
+        return *this;
+    }
+
+    cvec& operator-=(const cvec& rhs) {
+        std::transform(
+            _elem.cbegin(), _elem.cend(), rhs._elem.cbegin(), _elem.begin(), std::minus<> {});
+        return *this;
+    }
+
+    cvec& operator*=(const double& s) {
+        std::transform(
+            _elem.cbegin(), _elem.cend(), _elem.begin(), [s](const auto& v) { return v * s; });
+        return *this;
+    }
+
+    cvec& operator/=(const double& s) {
+        if (s == 0.)
+            throw std::runtime_error("[ERROR] Division by zero");
+        std::transform(
+            _elem.cbegin(), _elem.cend(), _elem.begin(), [s](const auto& v) { return v / s; });
+        return *this;
+    }
+};
+
+/**
+ @brief Determines whether two compelx vectors have the same direction
+ */
+template <std::size_t DIM> bool collinear(const cvec<DIM>& a, const cvec<DIM>& b) {
+    std::array<complex_t, DIM> ratio {};
+    std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(), ratio.begin(), std::divides<>{});
+    
+    // Originally, the following expression in if statement should be either
+    //   if (std::adjacent_find(ratio.begin(), ratio.end(), std::not_equal_to<>())
+    //       == ratio.end())
+    // or,
+    //   if (std::equal(ratio.begin() + 1, ratio.end(), ratio.begin()))
+    //
+    // But, to ignore 'nan' which is the result of 0./0., we need a special predicate.
+    auto nan_skipping_not_equal_to = [](const complex_t& a, const complex_t& b){
+        if ((isnan(a.real()) && isnan(b.real())) || (isnan(a.imag()) && isnan(b.imag())))
+            return false;
+        else
+            return a != b;
+    };
+
+    if (std::adjacent_find(ratio.begin(), ratio.end(), nan_skipping_not_equal_to) == ratio.end())
+        return true;
+    
+    return false;
+}
+
+
+
 // =============================================================================
 //                                                     C L A S S  :  M A T R I X
 // =============================================================================
+#pragma mark - Matrix
+
 /**
  @brief Matrix
 
@@ -1244,10 +1414,11 @@ template <std::size_t DIM> bool is_symmetric(const mat<DIM, DIM>& M) {
  */
 template <std::size_t DIM> struct eigensystem {
     // Eigenvalues
-    std::array<std::complex<double>, DIM> eigvals;
-
+    std::array<complex_t, DIM> eigvals;
+    
     // Eigenvectors
-    using eigvec = std::array<std::complex<double>, DIM>;
+    // using eigvec = std::array<complex_t, DIM>;
+    using eigvec = cvec<DIM>;
     std::array<eigvec, DIM> eigvecs_r;
     std::array<eigvec, DIM> eigvecs_l;
 };
@@ -1282,11 +1453,14 @@ template <std::size_t DIM> eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen 
 
         if (INFO == 0) {
             for (std::size_t j = 0; j < static_cast<std::size_t>(N); ++j) {
-                es.eigvals[j] = std::complex {W[j]};
-
+                es.eigvals[j] = complex_t {W[j]};
+                
                 if (js != eigen::val)
+                    es.eigvecs_r[j] = cvec<DIM> {&A.elem()[j * DIM]};
+                    /*
                     for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
                         es.eigvecs_r[j][i] = std::complex {A(i + 1, j + 1)};
+                     */
             }
         }
         else
@@ -1342,92 +1516,88 @@ template <std::size_t DIM> eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen 
         if (INFO == 0) {
             for (std::size_t j = 0; j < static_cast<std::size_t>(N); ++j) {
                 // Eigenvalue
-                es.eigvals[j] = std::complex {WR[j], WI[j]};
-
+                es.eigvals[j] = complex_t {WR[j], WI[j]};
+                
                 switch (js) {
                 case eigen::val:
                     break;
-
+                    
                 case eigen::vec:
-                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j + 1]) {
+                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j+1]) {
                         // Complex conjugate
-
+                        
                         // Next Eigenvalue
-                        es.eigvals[j + 1] = std::complex {WR[j + 1], WI[j + 1]};
-
+                        es.eigvals[j + 1] = complex_t {WR[j + 1], WI[j + 1]};
+                        
                         // Right Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i) {
-                            es.eigvecs_r[j][i] = std::complex {VR(i + 1, j + 1), VR(i + 1, j + 2)};
-                            es.eigvecs_r[j + 1][i] =
-                                std::complex {VR(i + 1, j + 1), -VR(i + 1, j + 2)};
+                            es.eigvecs_r[j][i] = complex_t {VR(i + 1, j + 1), VR(i + 1, j + 2)};
+                            es.eigvecs_r[j + 1][i] = complex_t {VR(i + 1, j + 1), -VR(i + 1, j + 2)};
                         }
-
+                        
                         // Left Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i) {
-                            es.eigvecs_l[j][i] = std::complex {VL(i + 1, j + 1), VL(i + 1, j + 2)};
-                            es.eigvecs_l[j + 1][i] =
-                                std::complex {VL(i + 1, j + 1), -VL(i + 1, j + 2)};
+                            es.eigvecs_l[j][i] = complex_t {VL(i + 1, j + 1), VL(i + 1, j + 2)};
+                            es.eigvecs_l[j + 1][i] = complex_t {VL(i + 1, j + 1), -VL(i + 1, j + 2)};
                         }
-
+                        
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
                     }
                     else { // Real
                         // Right Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
-                            es.eigvecs_r[j][i] = std::complex {VR(i + 1, j + 1)};
-
+                            es.eigvecs_r[j][i] = complex_t {VR(i + 1, j + 1)};
+                        
                         // Left Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
-                            es.eigvecs_l[j][i] = std::complex {VL(i + 1, j + 1)};
+                            es.eigvecs_l[j][i] = complex_t {VL(i + 1, j + 1)};
                     }
                     break;
-
+                    
                 case eigen::lvec:
-                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j + 1]) {
+                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j+1]) {
                         // Complex conjugate
-
+                        
                         // Next Eigenvalue
-                        es.eigvals[j + 1] = std::complex {WR[j + 1], WI[j + 1]};
-
+                        es.eigvals[j + 1] = complex_t {WR[j + 1], WI[j + 1]};
+                        
                         // Left Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i) {
-                            es.eigvecs_l[j][i] = std::complex {VL(i + 1, j + 1), VL(i + 1, j + 2)};
-                            es.eigvecs_l[j + 1][i] =
-                                std::complex {VL(i + 1, j + 1), -VL(i + 1, j + 2)};
+                            es.eigvecs_l[j][i] = complex_t {VL(i + 1, j + 1), VL(i + 1, j + 2)};
+                            es.eigvecs_l[j + 1][i] = complex_t {VL(i + 1, j + 1), -VL(i + 1, j + 2)};
                         }
-
+                        
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
                     }
                     else { // Real
                         // Left Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
-                            es.eigvecs_l[j][i] = std::complex {VL(i + 1, j + 1)};
+                            es.eigvecs_l[j][i] = complex_t {VL(i + 1, j + 1)};
                     }
                     break;
-
+                    
                 case eigen::rvec:
-                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j + 1]) {
+                    if (WI[j] != 0. && j < static_cast<std::size_t>(N - 1) && WI[j] == -WI[j+1]) {
                         // Complex conjugate
-
+                        
                         // Next Eigenvalue
-                        es.eigvals[j + 1] = std::complex {WR[j + 1], WI[j + 1]};
-
+                        es.eigvals[j + 1] = complex_t {WR[j + 1], WI[j + 1]};
+                        
                         // Right Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i) {
-                            es.eigvecs_r[j][i] = std::complex {VR(i + 1, j + 1), VR(i + 1, j + 2)};
-                            es.eigvecs_r[j + 1][i] =
-                                std::complex {VR(i + 1, j + 1), -VR(i + 1, j + 2)};
+                            es.eigvecs_r[j][i] = complex_t {VR(i + 1, j + 1), VR(i + 1, j + 2)};
+                            es.eigvecs_r[j + 1][i] = complex_t {VR(i + 1, j + 1), -VR(i + 1, j + 2)};
                         }
-
+                        
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
                     }
                     else { // Real
                         // Right Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
-                            es.eigvecs_r[j][i] = std::complex {VR(i + 1, j + 1)};
+                            es.eigvecs_r[j][i] = complex_t {VR(i + 1, j + 1)};
                     }
                     break;
                 }
