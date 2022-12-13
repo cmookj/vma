@@ -67,11 +67,11 @@ using namespace tls::blat;
     for (std::size_t i = 1; i <= v6.dim(); ++i)
         XCTAssert(v6(i) == (2.*i - 1.) * std::pow(-1., i));
     
-    std::cout << v6.str(output_fmt::sht) << std::endl;
-    std::cout << v6.str() << std::endl;
-    std::cout << v6.str(output_fmt::ext) << std::endl;
-    std::cout << v6.str(output_fmt::sci) << std::endl;
-    std::cout << v6.str(output_fmt::scx) << std::endl;
+    std::cout << str(v6, output_fmt::sht) << std::endl;
+    std::cout << str(v6) << std::endl;
+    std::cout << str(v6, output_fmt::ext) << std::endl;
+    std::cout << str(v6, output_fmt::sci) << std::endl;
+    std::cout << str(v6, output_fmt::scx) << std::endl;
     
     auto v7 = rand<100>();
     
@@ -91,14 +91,15 @@ using namespace tls::blat;
     
     XCTAssert(collinear(v3, v4));
     
-    cvec<4> cv1 {{1., 2.}, {3., 4.}, {-2., -1.}, {-5., 3.}};
-    cvec<4> cv2 {{2., 4.}, {6., 8.}, {-4., -2.}, {-10., 6.}};
+    vec<4, complex_t> cv1 {{1., 2.}, {3., 4.}, {-2., -1.}, {-5., 3.}};
+    vec<4, complex_t> cv2 {{2., 4.}, {6., 8.}, {-4., -2.}, {-10., 6.}};
     XCTAssert(collinear(cv1, cv2));
     
-    cvec<4> cv3 {{1., 2.}, {3., 0.}, {0., -1.}, {-5., 3.}};
-    cvec<4> cv4 {{2., 4.}, {6., 0.}, {0., -2.}, {-10., 6.}};
+    vec<4, complex_t> cv3 {{1., 2.}, {3., 0.}, {0., -1.}, {-5., 3.}};
+    vec<4, complex_t> cv4 {{2., 4.}, {6., 0.}, {0., -2.}, {-10., 6.}};
     XCTAssert(collinear(cv3, cv4));
 }
+
 - (void)testIndexAssignmentCompariton {
     vec<5> v1{1, 2, 3, 4, 5};
     
@@ -117,7 +118,6 @@ using namespace tls::blat;
     auto v3 {v1};
     XCTAssert(v3 == v1);
 }
-
 
 - (void)testAdditionSubtraction {
     vec<5> v1{1, 3, 5, 7, 9};
@@ -191,14 +191,14 @@ using namespace tls::blat;
     vec<3> v0 {};
     
     vec<3> v1 {1, 3, 5};
-    XCTAssert(v1.norm(1) == 1. + 3. + 5.);
-    XCTAssert(v1.norm(2) == std::sqrt(1. + 9. + 25.));
-    XCTAssert(v1.norm_inf() == 5.);
+    XCTAssert(norm(v1, 1) == 1. + 3. + 5.);
+    XCTAssert(norm(v1, 2) == std::sqrt(1. + 9. + 25.));
+    XCTAssert(norm_inf(v1) == 5.);
     
     vec<3> v2 {-1., 3, -5.};
-    XCTAssert(v2.norm(1) == 1. + 3. + 5.);
-    XCTAssert(v2.norm(2) == std::sqrt(1. + 9. + 25.));
-    XCTAssert(v2.norm_inf() == -5.);
+    XCTAssert(norm(v2, 1) == 1. + 3. + 5.);
+    XCTAssert(norm(v2, 2) == std::sqrt(1. + 9. + 25.));
+    XCTAssert(norm_inf(v2) == -5.);
 
     vec<3> v3 {2, 4, 6};
     XCTAssert(inner(v1, v3) == 1.*2. + 3.*4. + 5.*6.);
@@ -544,10 +544,10 @@ using namespace tls::blat;
     auto S = svd(M, U, Vt);
     
     vec<4> singular_values {
-        "18.365978454889984 "
-        "13.629979679210999 "
-        "10.85333572722705 "
-        "4.491569094526893 "
+        18.365978454889984,
+        13.629979679210999,
+        10.85333572722705,
+        4.491569094526893
     };
         
     XCTAssert(norm(S - singular_values) < TOLERANCE * 1e2);
@@ -671,23 +671,24 @@ using namespace tls::blat;
 }
 
 - (void)testComplexVector {
-    cvec<4> cv1 {};
+    vec<4, complex_t> cv1 {};
     for (std::size_t i = 0; i < cv1.dim(); ++i)
         XCTAssert((cv1[i].real() == 0.) && (cv1[i].imag() == 0.));
     
-    cvec<4> cv2 {{1, 2}, {2, 3}, {3, 4}, {4, 5}};
+    vec<4, complex_t> cv2 {{1, 2}, {2, 3}, {3, 4}, {4, 5}};
     for (std::size_t i = 0; i < cv2.dim(); ++i)
         XCTAssert((cv2[i].real() == i + 1.) && (cv2[i].imag() == i + 2.));
     
-    double re[] = {1, 2, 3, 4};
-    double im[] = {2, 3, 4, 5};
-    cvec<4> cv3 {re, im};
-    XCTAssert(cv2 == cv3);
+    double re[] = {1., 2., 3., 4.};
+    vec<4, complex_t> cv3 {re};
+    for (std::size_t i = 0; i < cv3.dim(); ++i)
+        XCTAssert(cv3[i].real() == re[i] && cv3[i].imag() == 0.);
     
-    cvec<4> cv4 {re};
-    for (std::size_t i = 0; i < cv4.dim(); ++i)
-        XCTAssert(cv4[i].real() == re[i] && cv4[i].imag() == 0.);
-
+    std::cout << str(cv2, output_fmt::sht) << std::endl;
+    std::cout << str(cv2) << std::endl;
+    std::cout << str(cv2, output_fmt::ext) << std::endl;
+    std::cout << str(cv2, output_fmt::sci) << std::endl;
+    std::cout << str(cv2, output_fmt::scx) << std::endl;
 }
 
 - (void)testPerformanceMatrixMultiplication {

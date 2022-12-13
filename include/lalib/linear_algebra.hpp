@@ -83,6 +83,8 @@ enum class output_fmt { sht, nml, ext, sci, scx };
 // Eigenvalue problem specification to control the problem setup and solution
 enum class eigen { val, vec, lvec, rvec };
 
+using complex_t = std::complex<double>;
+
 // =============================================================================
 //                                                     C L A S S  :  V E C T O R
 // =============================================================================
@@ -91,241 +93,151 @@ enum class eigen { val, vec, lvec, rvec };
 /**
  @brief Vector
  */
-template <std::size_t DIM> class vec {
+template <std::size_t DIM, typename T = double> class vec {
 protected:
-    std::array<double, DIM> _elem;
-
+    std::array<T, DIM> _elem;
+    
 public:
     // Default constructor and destructor
     vec() { _elem.fill(0.); }
     virtual ~vec() = default;
-
+    
     // Copy constructor & assignment
     vec(const vec&)            = default;
     vec& operator=(const vec&) = default;
-
+    
     // Move constructor & assignment
     vec(vec&&) noexcept            = default;
     vec& operator=(vec&&) noexcept = default;
-
+    
     // Other constructors
-    vec(std::array<double, DIM>&& elm)
-        : _elem {std::move(elm)} { }
-
-    vec(const double v) {
-        std::for_each(_elem.begin(), _elem.end(), [&v](double& e) { e = v; });
+    vec(std::array<T, DIM>&& elm)
+    : _elem {std::move(elm)} { }
+    
+    vec(const T v) {
+        std::for_each(_elem.begin(), _elem.end(), [&v](T& e) { e = v; });
     }
-
+    
     vec(const double* vp) {
-        std::for_each(_elem.begin(), _elem.end(), [&vp](double& e) { e = *(vp++); });
+        std::for_each(_elem.begin(), _elem.end(), [&vp](T& e) { e = *(vp++); });
     }
-
-    vec(const std::initializer_list<double>& il) {
+    
+    vec(const std::initializer_list<T>& il) {
         if (il.size() == 1)
             _elem.fill(*il.begin());
-
+        
         else if (il.size() <= DIM)
             std::transform(
-                il.begin(), il.end(), _elem.begin(), [](const double& v) -> double { return v; });
+                           il.begin(), il.end(), _elem.begin(), [](const T& v) -> T { return v; });
     }
-
-    vec(const char* fmt) {
-        _elem.fill(0.);
-        _format(fmt);
-    }
-
+        
     // Access methods
-    std::array<double, DIM>&       elem() { return _elem; }
-    const std::array<double, DIM>& elem() const { return _elem; }
-
+    std::array<T, DIM>&       elem() { return _elem; }
+    const std::array<T, DIM>& elem() const { return _elem; }
+    
     // Subscript operators
-    double& operator[](const std::size_t n) {
-        return const_cast<double&>(static_cast<const vec&>(*this)[n]);
+    T& operator[](const std::size_t n) {
+        return const_cast<T&>(static_cast<const vec&>(*this)[n]);
     }
-    double& operator()(const std::size_t n) {
-        return const_cast<double&>(static_cast<const vec&>(*this)(n));
+    T& operator()(const std::size_t n) {
+        return const_cast<T&>(static_cast<const vec&>(*this)(n));
     }
-    const double& operator[](const std::size_t n) const { return _elem[n]; }
-    const double& operator()(const std::size_t n) const { return _elem[n - 1]; }
-
+    const T& operator[](const std::size_t n) const { return _elem[n]; }
+    const T& operator()(const std::size_t n) const { return _elem[n - 1]; }
+    
     // Dimension
     std::size_t dim() const { return _elem.size(); }
-
+    
     // Equality
     bool operator==(const vec& rhs) const { return _elem == rhs._elem; }
     bool operator!=(const vec& rhs) const { return !(_elem == rhs._elem); }
-
+    
     // Binary arithmetic operators
     vec& operator+=(const vec& rhs) {
         std::transform(
-            _elem.cbegin(), _elem.cend(), rhs._elem.cbegin(), _elem.begin(), std::plus<> {});
+                       _elem.cbegin(), _elem.cend(), rhs._elem.cbegin(), _elem.begin(), std::plus<> {});
         return *this;
     }
-
+    
     vec& operator-=(const vec& rhs) {
         std::transform(
-            _elem.cbegin(), _elem.cend(), rhs._elem.cbegin(), _elem.begin(), std::minus<> {});
+                       _elem.cbegin(), _elem.cend(), rhs._elem.cbegin(), _elem.begin(), std::minus<> {});
         return *this;
     }
-
+    
     vec& operator*=(const double& s) {
         std::transform(
-            _elem.cbegin(), _elem.cend(), _elem.begin(), [s](const auto& v) { return v * s; });
+                       _elem.cbegin(), _elem.cend(), _elem.begin(), [s](const auto& v) { return v * s; });
         return *this;
     }
-
+    
     vec& operator/=(const double& s) {
         if (s == 0.)
             throw std::runtime_error("[ERROR] Division by zero");
         std::transform(
-            _elem.cbegin(), _elem.cend(), _elem.begin(), [s](const auto& v) { return v / s; });
+                       _elem.cbegin(), _elem.cend(), _elem.begin(), [s](const auto& v) { return v / s; });
         return *this;
     }
-
-    // -------------------------------------------------------------------------
-    //  Algebraic operations for vectors
-    // -------------------------------------------------------------------------
-    /**
-     @brief Calculates p-norm of a vector
-
-     @details The vector norm |x|_p for p = 1, 2, ... is defined as
-         |x|_p = (sum |x_i|^p)^(1/p).
-     */
-    double norm(const unsigned p = 2) const {
-        auto powered_fold = [p](const double a, const double b) {
-            return a + std::pow(std::abs(b), double(p));
-        };
-        return std::pow(std::accumulate(_elem.cbegin(), _elem.cend(), 0., powered_fold),
-                        1. / double(p));
-    }
-
-    /**
-     @brief Calculates infinite vector norm
-
-     @details The special case |x|_inf is defined as
-         |x|_inf = max |x_i|
-     */
-    double norm_inf() const {
-        auto index = std::max_element(_elem.begin(), _elem.end(), [](double a, double b) {
-            return std::abs(a) < std::abs(b);
-        });
-        return *index;
-    }
-
-    vec unit(const unsigned p = 2) const {
-        vec    u {*this};
-        double n {this->norm(p)};
-        if (n > EPS)
-            u /= n;
-        return u;
-    }
-
-    double inner(const vec& b) const {
-        return std::transform_reduce(_elem.cbegin(), _elem.cend(), b._elem.cbegin(), 0.);
-    }
-
-    /**
-     @brief Represents the vector as a text string
-     */
-    std::string str(output_fmt fmt = output_fmt::nml) const {
-        std::stringstream strm {};
-
-        int width;
-        int precision;
-
-        std::ios_base::fmtflags options;
-
-        switch (fmt) {
-        case output_fmt::sht:
-            options   = std::ios_base::fixed;
-            precision = 2;
-            width     = 8;
-            break;
-
-        case output_fmt::nml:
-            options   = std::ios_base::fixed;
-            precision = 4;
-            width     = 10;
-            break;
-
-        case output_fmt::ext:
-            options   = std::ios_base::fixed;
-            precision = 8;
-            width     = 14;
-            break;
-
-        case output_fmt::sci:
-            options   = std::ios_base::scientific;
-            precision = 4;
-            width     = 10;
-            break;
-
-        case output_fmt::scx:
-            options   = std::ios_base::scientific;
-            precision = 8;
-            width     = 18;
-        }
-
-        strm.setf(options, std::ios_base::floatfield);
-        strm.precision(precision);
-
-        auto print = [&strm, &width](const double& v) {
-            strm.width(width);
-            strm << v << ", ";
-        };
-
-        strm << "[ ";
-        std::for_each(_elem.cbegin(), _elem.cend(), print);
-        strm << "]";
-
-        return strm.str();
-    }
-
-protected:
-    void _format(const char* fmt) {
-        bool        numeric_rep_preceded = false;
-        bool        eol                  = false;
-        char        ch;
-        std::size_t count = 0;
-        unsigned    idx   = 0;
-
-        while (!eol) {
-            ch = fmt[idx++];
-            if (ch == '\t' || ch == ' ' || ch == ',' || ch == '\0') {
-                if (numeric_rep_preceded == true) {
-                    count++;
-                    numeric_rep_preceded = false;
-                }
-                if (ch == '\0') {
-                    eol = true;
-                }
-            }
-            else
-                numeric_rep_preceded = true;
-        }
-
-        char buf[256];
-        eol          = false;
-        idx          = 0;
-        unsigned ddx = 0;
-        unsigned i   = 0;
-        while (!eol) {
-            ch = fmt[idx++];
-            if (ch == '\t' || ch == ' ' || ch == ',' || ch == '\0') {
-                if (ddx > 0) {
-                    buf[ddx] = '\0';
-                    _elem[i] = atof(buf);
-                    i++;
-                    ddx = 0;
-                }
-                if (ch == '\0')
-                    eol = true;
-            }
-            else
-                buf[ddx++] = ch;
-        }
-    }
 };
+
+/**
+ @brief Represents the vector as a text string
+ */
+template <std::size_t DIM, typename T = double>
+std::string str(const vec<DIM, T>& v, output_fmt fmt = output_fmt::nml) {
+    std::stringstream strm {};
+
+    int width;
+    int precision;
+
+    std::ios_base::fmtflags options;
+
+    switch (fmt) {
+    case output_fmt::sht:
+        options   = std::ios_base::fixed;
+        precision = 2;
+        width     = 8;
+        break;
+
+    case output_fmt::nml:
+        options   = std::ios_base::fixed;
+        precision = 4;
+        width     = 10;
+        break;
+
+    case output_fmt::ext:
+        options   = std::ios_base::fixed;
+        precision = 8;
+        width     = 14;
+        break;
+
+    case output_fmt::sci:
+        options   = std::ios_base::scientific;
+        precision = 4;
+        width     = 10;
+        break;
+
+    case output_fmt::scx:
+        options   = std::ios_base::scientific;
+        precision = 8;
+        width     = 18;
+    }
+
+    strm.setf(options, std::ios_base::floatfield);
+    strm.precision(precision);
+
+    auto print = [&strm, &width](const T& v) {
+        strm.width(width);
+        strm << v << ", ";
+    };
+
+    strm << "[ ";
+    std::for_each(v.elem().cbegin(), v.elem().cend(), print);
+    strm << "]";
+
+    return strm.str();
+}
+ 
 
 // -----------------------------------------------------------------------------
 //                                                       Special Vector Creation
@@ -369,24 +281,45 @@ template <std::size_t DIM> vec<DIM> randn() {
  @brief Calculates inner product of two vectors
  */
 template <std::size_t DIM> double inner(const vec<DIM>& a, const vec<DIM>& b) {
-    return a.inner(b);
+    return std::transform_reduce(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(), 0.);
+}
+
+/**
+ @brief Calculates p-norm of a vector
+
+ @details The vector norm |x|_p for p = 1, 2, ... is defined as
+     |x|_p = (sum |x_i|^p)^(1/p).
+ */
+template <std::size_t DIM> double norm(const vec<DIM>& v, const unsigned p = 2) {
+    auto powered_fold = [p](const double a, const double b) {
+        return a + std::pow(std::abs(b), double(p));
+    };
+    return std::pow(std::accumulate(v.elem().cbegin(), v.elem().cend(), 0., powered_fold),
+                    1. / double(p));
+}
+
+/**
+ @brief Calculates infinite vector norm
+
+ @details The special case |x|_inf is defined as
+     |x|_inf = max |x_i|
+ */
+template <std::size_t DIM>
+double norm_inf(const vec<DIM>& v) {
+    auto index = std::max_element(v.elem().begin(), v.elem().end(), [](double a, double b) {
+        return std::abs(a) < std::abs(b);
+    });
+    return *index;
 }
 
 /**
  @brief Normalizes a vector
  */
 template <std::size_t DIM> vec<DIM>& normalize(vec<DIM>& v, const unsigned p = 2) {
-    double n = v.norm(p);
+    double n = norm(v, p);
     if (n > EPS)
         v /= n;
     return v;
-}
-
-/**
- @brief Calculates the norm of a vector
- */
-template <std::size_t DIM> double norm(const vec<DIM>& v, const unsigned p = 2) {
-    return v.norm(p);
 }
 
 /**
@@ -399,7 +332,7 @@ template <std::size_t DIM> double dist(const vec<DIM>& a, const vec<DIM>& b) {
 /**
  @brief Adds two vectors
  */
-template <std::size_t DIM> vec<DIM> operator+(const vec<DIM>& a, const vec<DIM>& b) {
+template <typename T, std::size_t DIM> vec<DIM, T> operator+(const vec<DIM, T>& a, const vec<DIM, T>& b) {
     vec result {a};
     result += b;
     return result;
@@ -408,7 +341,7 @@ template <std::size_t DIM> vec<DIM> operator+(const vec<DIM>& a, const vec<DIM>&
 /**
  @brief Subtracts a vector from another
  */
-template <std::size_t DIM> vec<DIM> operator-(const vec<DIM>& a, const vec<DIM>& b) {
+template <typename T, std::size_t DIM> vec<DIM, T> operator-(const vec<DIM, T>& a, const vec<DIM, T>& b) {
     vec result {a};
     result -= b;
     return result;
@@ -417,7 +350,7 @@ template <std::size_t DIM> vec<DIM> operator-(const vec<DIM>& a, const vec<DIM>&
 /**
  @brief Negate a vector
  */
-template <std::size_t DIM> vec<DIM> operator-(const vec<DIM>& a) {
+template <typename T, std::size_t DIM> vec<DIM, T> operator-(const vec<DIM, T>& a) {
     vec result {a};
     result *= -1.;
     return result;
@@ -426,7 +359,7 @@ template <std::size_t DIM> vec<DIM> operator-(const vec<DIM>& a) {
 /**
  @brief Multiplies a scalar to a vector
  */
-template <std::size_t DIM> vec<DIM> operator*(const vec<DIM>& a, const double s) {
+template <typename T, std::size_t DIM> vec<DIM, T> operator*(const vec<DIM, T>& a, const double s) {
     vec result {a};
     result *= s;
     return result;
@@ -435,7 +368,7 @@ template <std::size_t DIM> vec<DIM> operator*(const vec<DIM>& a, const double s)
 /**
  @brief Multiplies a scalar to a vector
  */
-template <std::size_t DIM> vec<DIM> operator*(const double s, const vec<DIM>& a) {
+template <typename T, std::size_t DIM> vec<DIM, T> operator*(const double s, const vec<DIM, T>& a) {
     vec result {a};
     result *= s;
     return result;
@@ -444,7 +377,7 @@ template <std::size_t DIM> vec<DIM> operator*(const double s, const vec<DIM>& a)
 /**
  @brief Divides a vector by a scalar
  */
-template <std::size_t DIM> vec<DIM> operator/(const vec<DIM>& a, const double s) {
+template <typename T, std::size_t DIM> vec<DIM, T> operator/(const vec<DIM, T>& a, const double s) {
     vec result {a};
     result /= s;
     return result;
@@ -477,120 +410,10 @@ template <std::size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) 
     return false;
 }
 
-
-// =============================================================================
-//                                    C L A S S  :  C O M P L E X    V E C T O R
-// =============================================================================
-#pragma mark - Complex Vector
-
-/**
- @brief A vector of complex numbers
- */
-using complex_t = std::complex<double>;
-
-struct pair_t {
-    double re;
-    double im;
-};
-
-template <std::size_t DIM> class cvec {
-protected:
-    std::array<complex_t, DIM> _elem;
-
-public:
-    // Default constructor and destructor
-    cvec() { _elem.fill(complex_t{0.}); }
-    virtual ~cvec() = default;
-
-    // Copy constructor & assignment
-    cvec(const cvec&)            = default;
-    cvec& operator=(const cvec&) = default;
-
-    // Move constructor & assignment
-    cvec(cvec&&) noexcept            = default;
-    cvec& operator=(cvec&&) noexcept = default;
-
-    // Other constructors
-    cvec(std::array<double, DIM>&& elm)
-        : _elem {std::move(elm)} { }
-
-    cvec(const double v) {
-        std::for_each(_elem.begin(), _elem.end(), [=](complex_t& e) { e = complex_t{v}; });
-    }
-
-    cvec(const double* vp) {
-        std::for_each(_elem.begin(), _elem.end(), [&](complex_t& e) { e = complex_t(*(vp++)); });
-    }
-    
-    cvec(const double* vp_r, const double* vp_i) {
-        std::for_each(_elem.begin(), _elem.end(), [&](complex_t& e) { e = complex_t(*(vp_r++), *(vp_i++)); });
-    }
-
-    cvec(const std::initializer_list<double>& il) {
-        if (il.size() == DIM)
-            std::transform(
-                il.begin(), il.end(), _elem.begin(), [](const double& v) -> complex_t { return complex_t(v); });
-    }
-    
-    cvec(const std::initializer_list<pair_t>& il) {
-        if (il.size() == DIM)
-            std::transform(
-                il.begin(), il.end(), _elem.begin(), [](const pair_t& v) -> complex_t { return complex_t(v.re, v.im); });
-    }
-
-    // Access methods
-    std::array<complex_t, DIM>&       elem() { return _elem; }
-    const std::array<complex_t, DIM>& elem() const { return _elem; }
-
-    // Subscript operators
-    complex_t& operator[](const std::size_t n) {
-        return const_cast<complex_t&>(static_cast<const cvec&>(*this)[n]);
-    }
-    complex_t& operator()(const std::size_t n) {
-        return const_cast<complex_t&>(static_cast<const cvec&>(*this)(n));
-    }
-    const complex_t& operator[](const std::size_t n) const { return _elem[n]; }
-    const complex_t& operator()(const std::size_t n) const { return _elem[n - 1]; }
-
-    // Dimension
-    std::size_t dim() const { return _elem.size(); }
-
-    // Equality
-    bool operator==(const cvec& rhs) const { return _elem == rhs._elem; }
-    bool operator!=(const cvec& rhs) const { return !(_elem == rhs._elem); }
-    
-    // Binary arithmetic operators
-    cvec& operator+=(const cvec& rhs) {
-        std::transform(
-            _elem.cbegin(), _elem.cend(), rhs._elem.cbegin(), _elem.begin(), std::plus<> {});
-        return *this;
-    }
-
-    cvec& operator-=(const cvec& rhs) {
-        std::transform(
-            _elem.cbegin(), _elem.cend(), rhs._elem.cbegin(), _elem.begin(), std::minus<> {});
-        return *this;
-    }
-
-    cvec& operator*=(const double& s) {
-        std::transform(
-            _elem.cbegin(), _elem.cend(), _elem.begin(), [s](const auto& v) { return v * s; });
-        return *this;
-    }
-
-    cvec& operator/=(const double& s) {
-        if (s == 0.)
-            throw std::runtime_error("[ERROR] Division by zero");
-        std::transform(
-            _elem.cbegin(), _elem.cend(), _elem.begin(), [s](const auto& v) { return v / s; });
-        return *this;
-    }
-};
-
 /**
  @brief Determines whether two compelx vectors have the same direction
  */
-template <std::size_t DIM> bool collinear(const cvec<DIM>& a, const cvec<DIM>& b) {
+template <std::size_t DIM> bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b) {
     std::array<complex_t, DIM> ratio {};
     std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(), ratio.begin(), std::divides<>{});
     
@@ -1418,7 +1241,7 @@ template <std::size_t DIM> struct eigensystem {
     
     // Eigenvectors
     // using eigvec = std::array<complex_t, DIM>;
-    using eigvec = cvec<DIM>;
+    using eigvec = vec<DIM, complex_t>;
     std::array<eigvec, DIM> eigvecs_r;
     std::array<eigvec, DIM> eigvecs_l;
 };
@@ -1456,7 +1279,7 @@ template <std::size_t DIM> eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen 
                 es.eigvals[j] = complex_t {W[j]};
                 
                 if (js != eigen::val)
-                    es.eigvecs_r[j] = cvec<DIM> {&A.elem()[j * DIM]};
+                    es.eigvecs_r[j] = vec<DIM, complex_t> {&A.elem()[j * DIM]};
                     /*
                     for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
                         es.eigvecs_r[j][i] = std::complex {A(i + 1, j + 1)};
