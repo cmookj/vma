@@ -814,6 +814,20 @@ template <std::size_t DIM> mat<DIM, DIM> diag(double* val) {
 }
 
 /**
+ @brief Creates a matrix with only diagonal elements
+ */
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS, std::size_t DIM>
+mat<DIM_ROWS, DIM_COLS> diag(const vec<DIM>& v) {
+    std::array<double, DIM_ROWS * DIM_COLS> elm {};
+    elm.fill(0.);
+    
+    for (std::size_t i = 0; i < DIM; ++i)
+        elm[i * DIM_ROWS + i] = v.elem()[i];
+    
+    return mat<DIM_ROWS, DIM_COLS> {std::move(elm)};
+}
+
+/**
  @brief Creates a matrix with random numbers in uniform distribution
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> rand() {
@@ -1064,6 +1078,18 @@ vec<DIM_COLS> operator*(const vec<DIM_ROWS>& v, const mat<DIM_ROWS, DIM_COLS>& m
     return vec<DIM_COLS> {std::move(elm)};
 }
 
+/**
+ @brief Determines whether two matrices are similar to each other element-wise.
+ */
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
+bool approx(const mat<DIM_ROWS, DIM_COLS>& M1, const mat<DIM_ROWS, DIM_COLS>& M2, const double tol = TOLERANCE) {
+    auto diff {M1 - M2};
+    if (std::find_if(diff.elem().cbegin(), diff.elem().cend(), [&tol](const double& v){ return std::fabs(v) > tol; }) == std::end(diff.elem()))
+        return true;
+    else
+        return false;
+}
+
 // -----------------------------------------------------------------------------
 //                                                  Matrix Operations: Algebraic
 // -----------------------------------------------------------------------------
@@ -1167,9 +1193,102 @@ template <std::size_t DIM> mat<DIM, DIM> inv(const mat<DIM, DIM>& m) {
     return result;
 }
 
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
+struct svd_t {
+    mat<DIM_ROWS, DIM_ROWS> U;
+    vec<std::min(DIM_ROWS, DIM_COLS)> S;
+    mat<DIM_COLS, DIM_COLS> V;
+};
+
 /**
  @brief Decomposes a matrix into two unitary matrices and a diagonal matrix (SVD)
+ 
+ @details This function decomposes a m x n matrix into m x m unitary matrix,
+ m x n diagonal matrix of singular values, and n x n unitary matrix.
+ 
+ One possible SVD of the a matrix M:
+   M = U.Σ.V^†
+   where
+   M = ( 7.52   -1.1    -7.95    1.08
+        -0.76    0.62    9.34   -7.1
+         5.13    6.62   -5.66    0.87
+        -4.75    8.52    5.75    5.3
+         1.33    4.91   -5.49   -3.52
+        -2.4    -6.77    2.34    3.95 )
+   U = (-0.572674    0.177563    0.0056271    0.529022    0.58299    -0.144023
+         0.459422   -0.107528   -0.724027     0.417373    0.167946    0.225273
+        -0.450447   -0.413957    0.00417222   0.36286    -0.532307    0.459023
+         0.334096   -0.692623    0.494818     0.185129    0.358495   -0.0318806
+        -0.317397   -0.308371   -0.280347    -0.60983     0.437689    0.402626
+         0.213804    0.459053    0.390253     0.0900183   0.168744    0.744771 )
+   Σ = (18.366   0      0       0
+         0      13.63   0       0
+         0       0     10.8533  0
+         0       0      0       4.49157
+         0       0      0       0
+         0       0      0       0 )
+   V = (-0.516645    0.0786131  -0.280639   0.805071
+        -0.121232   -0.992329   -0.0212036  0.0117076
+         0.847064   -0.0945254  -0.141271   0.503578
+        -0.0293912  -0.0129938   0.949123   0.313262 )
+ 
+ Note that because the matrix Σ has zeros in the 5'th and 6'th rows, the 5'th
+ and 6'th columns of the unitary matrix U might be different from the result of
+ this function.
  */
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
+svd_t<DIM_ROWS, DIM_COLS>
+svd(const mat<DIM_ROWS, DIM_COLS>& M) {
+    integer_t m {static_cast<integer_t>(DIM_ROWS)};
+    integer_t n {static_cast<integer_t>(DIM_COLS)};
+    integer_t lda  = m;
+    integer_t ldu  = m;
+    integer_t ldvt = n;
+    integer_t ds   = std::min(m, n);
+
+    char      jobz = 'A';
+    integer_t lwork =
+        3 * ds * ds +
+        std::max(std::max(m, n), 5 * std::min(m, n) * std::min(m, n) + 4 * std::min(m, n));
+
+    auto el = std::make_unique<real_t[]>(DIM_ROWS * DIM_COLS);
+    std::memcpy(el.get(), M.elem().data(), sizeof(real_t) * DIM_ROWS * DIM_COLS);
+
+    auto      s     = std::make_unique<real_t[]>(ds);
+    auto      u     = std::make_unique<real_t[]>(ldu * m);
+    auto      vt    = std::make_unique<real_t[]>(ldvt * n);
+    auto      work  = std::make_unique<real_t[]>(std::max(1, lwork));
+    auto      iwork = std::make_unique<integer_t[]>(8 * ds);
+    integer_t info;
+
+    dgesdd_(&jobz,
+            &m,
+            &n,
+            el.get(),
+            &lda,
+            s.get(),
+            u.get(),
+            &ldu,
+            vt.get(),
+            &ldvt,
+            work.get(),
+            &lwork,
+            iwork.get(),
+            &info);
+
+    if (info > 0) {
+        throw std::runtime_error {"The algorithm for SVD failed to converge."};
+    }
+
+    // Create matrix U
+    mat<DIM_ROWS, DIM_ROWS> U {u.get()};
+
+    // Copy vt to the matrix Vt and transpose it
+    mat<DIM_COLS, DIM_COLS> Vt {vt.get()};
+
+    return svd_t<DIM_ROWS, DIM_COLS>{U, vec<std::min(DIM_ROWS, DIM_COLS)>(s.get()), transpose(Vt)};
+}
+
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
 vec<std::min(DIM_ROWS, DIM_COLS)>
 svd(const mat<DIM_ROWS, DIM_COLS>& M, mat<DIM_ROWS, DIM_ROWS>& U, mat<DIM_COLS, DIM_COLS>& Vt) {
@@ -1237,10 +1356,9 @@ template <std::size_t DIM> bool is_symmetric(const mat<DIM, DIM>& M) {
  */
 template <std::size_t DIM> struct eigensystem {
     // Eigenvalues
-    std::array<complex_t, DIM> eigvals;
+    vec<DIM, complex_t> eigvals;
     
     // Eigenvectors
-    // using eigvec = std::array<complex_t, DIM>;
     using eigvec = vec<DIM, complex_t>;
     std::array<eigvec, DIM> eigvecs_r;
     std::array<eigvec, DIM> eigvecs_l;
@@ -1280,10 +1398,6 @@ template <std::size_t DIM> eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen 
                 
                 if (js != eigen::val)
                     es.eigvecs_r[j] = vec<DIM, complex_t> {&A.elem()[j * DIM]};
-                    /*
-                    for (std::size_t i = 0; i < static_cast<std::size_t>(N); ++i)
-                        es.eigvecs_r[j][i] = std::complex {A(i + 1, j + 1)};
-                     */
             }
         }
         else

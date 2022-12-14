@@ -11,37 +11,7 @@
 using namespace std;
 using namespace tls::blat;
 
-@interface TestLinearAlgebra : XCTestCase
-{
-    mat<256, 256> mm0;
-    
-    mat<1024, 256> mm1;
-    mat<256, 256> mm2;
-}
-@end
-
-@implementation TestLinearAlgebra
-
-- (void)setUp {
-    // Put setup code here. This method is called before the invocation of each test method in the class.
-    for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
-        for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
-            mm0(i, j) = i;
-    
-    for (std::size_t i = 1; i <= mm1.count_rows(); ++i)
-        for (std::size_t j = 1; j <= mm1.count_cols(); ++j)
-            mm1(i, j) = i;
-    
-    for (std::size_t i = 1; i <= mm2.count_rows(); ++i)
-        for (std::size_t j = 1; j <= mm2.count_cols(); ++j)
-            mm2(i, j) = j;
-}
-
-- (void)tearDown {
-    // Put teardown code here. This method is called after the invocation of each test method in the class.
-}
-
-- (void)testVectorCreation {
+void test_vector_creation () {
     vec<5> v1;
     for (std::size_t i = 1; i <= v1.dim(); ++i)
         XCTAssert(v1(i) == 0.);
@@ -53,7 +23,7 @@ using namespace tls::blat;
     double a[5] = {1.0, 2.0, 3.0, 4.0, 5.0};
     vec<5> v3{a};
     for (std::size_t i = 1; i <= v3.dim(); ++i)
-        XCTAssert(v3(i) == a[i-1]);
+        XCTAssert(v3(i) == a[i - 1]);
     
     vec<5> v4{1, 3, 5, 7, 9};
     for (std::size_t i = 1; i <= v4.dim(); ++i)
@@ -78,9 +48,8 @@ using namespace tls::blat;
     auto v8 = randn<100>();
 }
 
-- (void)testColinearVectors{
-    vec<9> v1 {1., 2., 3., 4., 5., 6., 7., 8., 9.
-    };
+void test_vector_collinear () {
+    vec<9> v1 {1., 2., 3., 4., 5., 6., 7., 8., 9.};
     
     vec<9> v2 {2.*v1};
     
@@ -100,7 +69,7 @@ using namespace tls::blat;
     XCTAssert(collinear(cv3, cv4));
 }
 
-- (void)testIndexAssignmentCompariton {
+void test_vector_index_assignment_comparison () {
     vec<5> v1{1, 2, 3, 4, 5};
     
     v1(2)= -v1(2);
@@ -119,7 +88,7 @@ using namespace tls::blat;
     XCTAssert(v3 == v1);
 }
 
-- (void)testAdditionSubtraction {
+void test_vector_addition_subtraction () {
     vec<5> v1{1, 3, 5, 7, 9};
     vec<5> v2(1.);
     
@@ -144,7 +113,7 @@ using namespace tls::blat;
         XCTAssert(v1(i) == 2.*i - 1.);
 }
 
-- (void)testMultiplicationDivision {
+void test_vector_multiplication_division () {
     const double v[3] = {1., 3., 5.};
     vec<3> v1{v};
     
@@ -172,7 +141,7 @@ using namespace tls::blat;
         XCTAssert(v4[i] == .5 * v1[i] * 3./2.);
 }
 
-- (void)testVecMatMultiplication {
+void test_vector_matrix_multiplication () {
     mat<3, 3> m1{1, 2, 3, 4, 5, 6, 7, 8, 9};
     vec<3> v1{1, 3, 5};
  
@@ -187,7 +156,7 @@ using namespace tls::blat;
     XCTAssert(v3[2] == 66.);
 }
 
-- (void)testNormInnerProductNormalize {
+void test_vector_norm_inner_product_normalization () {
     vec<3> v0 {};
     
     vec<3> v1 {1, 3, 5};
@@ -212,7 +181,28 @@ using namespace tls::blat;
     XCTAssert(dist(v5, v6) == std::sqrt(4 * 1.));
 }
 
-- (void)testMatrixCreationIndexing {
+void test_vector_complex () {
+    vec<4, complex_t> cv1 {};
+    for (std::size_t i = 0; i < cv1.dim(); ++i)
+        XCTAssert((cv1[i].real() == 0.) && (cv1[i].imag() == 0.));
+    
+    vec<4, complex_t> cv2 {{1, 2}, {2, 3}, {3, 4}, {4, 5}};
+    for (std::size_t i = 0; i < cv2.dim(); ++i)
+        XCTAssert((cv2[i].real() == i + 1.) && (cv2[i].imag() == i + 2.));
+    
+    double re[] = {1., 2., 3., 4.};
+    vec<4, complex_t> cv3 {re};
+    for (std::size_t i = 0; i < cv3.dim(); ++i)
+        XCTAssert(cv3[i].real() == re[i] && cv3[i].imag() == 0.);
+    
+    std::cout << str(cv2, output_fmt::sht) << std::endl;
+    std::cout << str(cv2) << std::endl;
+    std::cout << str(cv2, output_fmt::ext) << std::endl;
+    std::cout << str(cv2, output_fmt::sci) << std::endl;
+    std::cout << str(cv2, output_fmt::scx) << std::endl;
+}
+
+void test_matrix_creation_indexing () {
     mat<4, 4> m0 {};
     for (std::size_t i = 1; i <= m0.count_rows(); ++i )
         for (std::size_t j = 1; j <= m0.count_cols(); ++j)
@@ -263,7 +253,7 @@ using namespace tls::blat;
             XCTAssert(m7(i, j) == (i == j ? el1[i - 1] : 0.));
 }
 
-- (void)testMatrixVecExtraction {
+void test_matrix_vector_extraction () {
     mat<8, 10> m1 {
         1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
         2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
@@ -308,7 +298,7 @@ using namespace tls::blat;
     XCTAssert(m1.row(7) == row7);
 }
 
-- (void)testMatrixTranspose {
+void test_matrix_transpose () {
     mat<8, 10> m1 {
         1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
         2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
@@ -333,7 +323,7 @@ using namespace tls::blat;
             XCTAssert(m2(i, j) == (i - 1.) + j);
 }
 
-- (void)testMatrixMultiplication {
+void test_matrix_multiplication () {
     // Small matrices
     mat<8, 10> m1 {
         "1  2  3  4  5  6  7  8  9 10;"
@@ -371,24 +361,9 @@ using namespace tls::blat;
         "770  895  1020  1145  1270  1395;"
     };
     XCTAssert(m12 == m12_desired);
-
-    auto prev_count_rows = mm0.count_rows();
-    mm0 *= mm2;
-    XCTAssert(mm0.count_rows() == prev_count_rows);
-    XCTAssert(mm0.count_cols() == mm2.count_cols());
-
-    const std::size_t p {mm0.count_cols()};
-    for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
-        for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
-            XCTAssert(mm0(i, j) == p * i * j);
-
-    auto mm12 = mm1 * mm2;
-    for (std::size_t i = 1; i <= mm12.count_rows(); ++i)
-        for (std::size_t j = 1; j <= mm12.count_cols(); ++j)
-            XCTAssert(mm12(i, j) == mm1.count_cols() * i * j);
 }
 
-- (void)testMatrixAdditionSubtraction {
+void test_matrix_addition_subtraction () {
     mat<4, 3> m1 {};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
@@ -408,10 +383,9 @@ using namespace tls::blat;
     for (std::size_t i = 1; i <= m4.count_rows(); ++i)
         for (std::size_t j = 1; j <= m4.count_cols(); ++j)
             XCTAssert(m4(i, j) == double(i) + 2.*double(j) - 3.*double(i) + double(j));
-
 }
 
-- (void)testMatrixScalarOperation {
+void test_matrix_scalar_operation () {
     mat<6, 8> m1 {};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
@@ -461,7 +435,7 @@ using namespace tls::blat;
             XCTAssert(m7(i, j) == 3. - m1(i, j));
 }
 
-- (void)testMatrixNegation {
+void test_matrix_negation () {
     mat<10, 10> m1 {};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
@@ -473,7 +447,7 @@ using namespace tls::blat;
             XCTAssert(m12(i, j) == -(i + j - 1.));
 }
 
-- (void)testMatrixVectorMultiplication {
+void test_matrix_vector_multiplication () {
     auto m1 = identity<3>();
     auto v1 = vec<3>{1.};
     
@@ -484,7 +458,7 @@ using namespace tls::blat;
     XCTAssert(v12 == v1);
 }
 
-- (void)testMatrixTrace {
+void test_matrix_trace () {
     auto m = identity<10>();
     XCTAssert(tr(m) == 10.);
     
@@ -498,7 +472,7 @@ using namespace tls::blat;
     XCTAssert(tr(m3) == 5.);
 }
 
-- (void)testMatrixDeterminant {
+void test_matrix_determinant () {
     auto m = identity<10>();
     XCTAssert(det(m) == 1.);
     
@@ -512,7 +486,7 @@ using namespace tls::blat;
     XCTAssert(det(m3) == -1028.5596);
 }
 
-- (void)testMatrixInversion {
+void test_matrix_inversion () {
     mat<3, 3> m1 {"1 2 3; 4 1 6; 7 8 1"};
     auto m2 = inv(m1);
     auto m3 = m1 * m2;
@@ -525,7 +499,7 @@ using namespace tls::blat;
             XCTAssert(std::fabs(m3(i, j) - (i == j ? 1. : 0.)) < TOLERANCE*1e2);
 }
 
-- (void)testMatrixSingularValueDecomposition {
+void test_matrix_singular_value_decomposition () {
     mat<6, 4> M {
         " 7.52 -1.10 -7.95  1.08;"
         "-0.76  0.62  9.34 -7.10;"
@@ -534,14 +508,35 @@ using namespace tls::blat;
         " 1.33  4.91 -5.49 -3.52;"
         "-2.40 -6.77  2.34  3.95;"
     };
-    XCTAssert(M.count_rows() == 6);
-    XCTAssert(M.count_cols() == 4);
-    XCTAssert(M(1, 1) == 7.52);
-    XCTAssert(M(1, 2) == -1.10);
     
-    mat<6, 6> U {};
-    mat<4, 4> Vt {};
-    auto S = svd(M, U, Vt);
+    // One possible SVD of the matrix above:
+    //   M = U.Σ.V^†
+    //   where
+    //   M = ( 7.52   -1.1    -7.95    1.08
+    //        -0.76    0.62    9.34   -7.1
+    //         5.13    6.62   -5.66    0.87
+    //        -4.75    8.52    5.75    5.3
+    //         1.33    4.91   -5.49   -3.52
+    //        -2.4    -6.77    2.34    3.95 )
+    //   U = (-0.572674    0.177563    0.0056271    0.529022    0.58299    -0.144023
+    //         0.459422   -0.107528   -0.724027     0.417373    0.167946    0.225273
+    //        -0.450447   -0.413957    0.00417222   0.36286    -0.532307    0.459023
+    //         0.334096   -0.692623    0.494818     0.185129    0.358495   -0.0318806
+    //        -0.317397   -0.308371   -0.280347    -0.60983     0.437689    0.402626
+    //         0.213804    0.459053    0.390253     0.0900183   0.168744    0.744771 )
+    //   Σ = (18.366   0      0       0
+    //         0      13.63   0       0
+    //         0       0     10.8533  0
+    //         0       0      0       4.49157
+    //         0       0      0       0
+    //         0       0      0       0 )
+    //   V = (-0.516645    0.0786131  -0.280639   0.805071
+    //        -0.121232   -0.992329   -0.0212036  0.0117076
+    //         0.847064   -0.0945254  -0.141271   0.503578
+    //        -0.0293912  -0.0129938   0.949123   0.313262 )
+    
+    auto SVD = svd(M);
+    XCTAssert(approx(SVD.U * diag<6, 4, 4>(SVD.S) * transpose(SVD.V), M, 0.000001));
     
     vec<4> singular_values {
         18.365978454889984,
@@ -549,11 +544,12 @@ using namespace tls::blat;
         10.85333572722705,
         4.491569094526893
     };
-        
-    XCTAssert(norm(S - singular_values) < TOLERANCE * 1e2);
+    XCTAssert(norm(SVD.S - singular_values) < TOLERANCE * 1e2);
+    XCTAssert(approx(SVD.U * transpose(SVD.U), identity<6>(), TOLERANCE * 1e1));
+    XCTAssert(approx(SVD.V * transpose(SVD.V), identity<4>(), TOLERANCE * 1e1));
 }
 
-- (void)testMatrixNorm {
+void test_matrix_norm () {
     mat<2, 2> m1 = {1., 2., 3., 4.};
     XCTAssert(std::fabs(norm_frobenius(m1) - 5.47723) < 0.0001);
     
@@ -561,7 +557,7 @@ using namespace tls::blat;
     XCTAssert(std::fabs(norm_frobenius(m2) - 16.8226) < 0.0001);
 }
 
-- (void)testEigensystem {
+void test_eigensystem () {
     mat<4, 4> m1 {1, 2, 3, 4, 2, 2, 3, 4, 3, 3, 3, 4, 4, 4, 4, 4};
     auto es1 = eigen(m1, eigen::vec);
     
@@ -595,18 +591,11 @@ using namespace tls::blat;
     mat<4, 4> m2 {0, 2, 0, 1, 2, 2, 3, 2, 4, -3, 0, 1, 6, 1, -6, -5};
     auto es2 = eigen(m2, eigen::vec);
     
-    vec<4> eval2_re {
-         4.177484212271297,
-        -4.820108319356918,
-        -1.1786879464571869,
-        -1.1786879464571869
-    };
-    
-    vec<4> eval2_im {
-        0.0,
-        0.0,
-        3.19870513679807,
-        -3.19870513679807
+    vec<4, complex_t> eval2 {
+        {  4.177484212271297, 0.},
+        { -4.820108319356918, 0.},
+        { -1.1786879464571869, 3.19870513679807},
+        { -1.1786879464571869, -3.19870513679807}
     };
     
     mat<4, 4> r_evec2_re {
@@ -641,8 +630,8 @@ using namespace tls::blat;
         auto eval = es2.eigvals[j];
         
         // Eigenvalue
-        XCTAssert(std::fabs(eval.real() - eval2_re(j + 1)) < 0.00001);
-        XCTAssert(std::fabs(eval.imag() - eval2_im(j + 1)) < 0.00001);
+        XCTAssert(std::fabs(eval.real() - eval2[j].real()) < 0.00001);
+        XCTAssert(std::fabs(eval.imag() - eval2[j].imag()) < 0.00001);
         
         // Eigenvectors
         double factor {0.};
@@ -670,25 +659,140 @@ using namespace tls::blat;
     }
 }
 
+
+
+@interface TestLinearAlgebra : XCTestCase
+{
+    mat<256, 256> mm0;
+    
+    mat<1024, 256> mm1;
+    mat<256, 256> mm2;
+}
+@end
+
+@implementation TestLinearAlgebra
+
+- (void)setUp {
+    // Put setup code here. This method is called before the invocation of each test method in the class.
+    for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
+        for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
+            mm0(i, j) = i;
+    
+    for (std::size_t i = 1; i <= mm1.count_rows(); ++i)
+        for (std::size_t j = 1; j <= mm1.count_cols(); ++j)
+            mm1(i, j) = i;
+    
+    for (std::size_t i = 1; i <= mm2.count_rows(); ++i)
+        for (std::size_t j = 1; j <= mm2.count_cols(); ++j)
+            mm2(i, j) = j;
+}
+
+- (void)tearDown {
+    // Put teardown code here. This method is called after the invocation of each test method in the class.
+}
+
+- (void)testVectorCreation {
+    test_vector_creation ();
+}
+
+- (void)testCollinearVectors{
+    test_vector_collinear ();
+}
+
+- (void)testIndexAssignmentComparison {
+    test_vector_index_assignment_comparison ();
+}
+
+- (void)testAdditionSubtraction {
+    test_vector_addition_subtraction ();
+}
+
+- (void)testMultiplicationDivision {
+    test_vector_multiplication_division ();
+}
+
+- (void)testVecMatMultiplication {
+    test_vector_matrix_multiplication ();
+}
+
+- (void)testNormInnerProductNormalize {
+    test_vector_norm_inner_product_normalization ();
+}
+
+- (void)testMatrixCreationIndexing {
+    test_matrix_creation_indexing ();
+}
+
+- (void)testMatrixVecExtraction {
+    test_matrix_vector_extraction ();
+}
+
+- (void)testMatrixTranspose {
+    test_matrix_transpose ();
+}
+
+- (void)testMatrixMultiplication {
+    test_matrix_multiplication ();
+    
+    auto prev_count_rows = mm0.count_rows();
+    mm0 *= mm2;
+    XCTAssert(mm0.count_rows() == prev_count_rows);
+    XCTAssert(mm0.count_cols() == mm2.count_cols());
+
+    const std::size_t p {mm0.count_cols()};
+    for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
+        for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
+            XCTAssert(mm0(i, j) == p * i * j);
+
+    auto mm12 = mm1 * mm2;
+    for (std::size_t i = 1; i <= mm12.count_rows(); ++i)
+        for (std::size_t j = 1; j <= mm12.count_cols(); ++j)
+            XCTAssert(mm12(i, j) == mm1.count_cols() * i * j);
+}
+
+- (void)testMatrixAdditionSubtraction {
+    test_matrix_addition_subtraction ();
+
+}
+
+- (void)testMatrixScalarOperation {
+    test_matrix_scalar_operation ();
+}
+
+- (void)testMatrixNegation {
+    test_matrix_negation ();
+}
+
+- (void)testMatrixVectorMultiplication {
+    test_matrix_vector_multiplication ();
+}
+
+- (void)testMatrixTrace {
+    test_matrix_trace ();
+}
+
+- (void)testMatrixDeterminant {
+    test_matrix_determinant ();
+}
+
+- (void)testMatrixInversion {
+    test_matrix_inversion ();
+}
+
+- (void)testMatrixSingularValueDecomposition {
+    test_matrix_singular_value_decomposition ();
+}
+
+- (void)testMatrixNorm {
+    test_matrix_norm ();
+}
+
+- (void)testEigensystem {
+    test_eigensystem ();
+}
+
 - (void)testComplexVector {
-    vec<4, complex_t> cv1 {};
-    for (std::size_t i = 0; i < cv1.dim(); ++i)
-        XCTAssert((cv1[i].real() == 0.) && (cv1[i].imag() == 0.));
-    
-    vec<4, complex_t> cv2 {{1, 2}, {2, 3}, {3, 4}, {4, 5}};
-    for (std::size_t i = 0; i < cv2.dim(); ++i)
-        XCTAssert((cv2[i].real() == i + 1.) && (cv2[i].imag() == i + 2.));
-    
-    double re[] = {1., 2., 3., 4.};
-    vec<4, complex_t> cv3 {re};
-    for (std::size_t i = 0; i < cv3.dim(); ++i)
-        XCTAssert(cv3[i].real() == re[i] && cv3[i].imag() == 0.);
-    
-    std::cout << str(cv2, output_fmt::sht) << std::endl;
-    std::cout << str(cv2) << std::endl;
-    std::cout << str(cv2, output_fmt::ext) << std::endl;
-    std::cout << str(cv2, output_fmt::sci) << std::endl;
-    std::cout << str(cv2, output_fmt::scx) << std::endl;
+    test_vector_complex ();
 }
 
 - (void)testPerformanceMatrixMultiplication {
