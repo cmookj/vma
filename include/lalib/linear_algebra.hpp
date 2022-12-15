@@ -455,16 +455,16 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b) {
 //                                                     C L A S S  :  M A T R I X
 // =============================================================================
 #pragma mark - Matrix
-
+    
 /**
  @brief Matrix
 
  @details This class stores the elements of a matrix in column major order,
  for easier and efficient integration with LAPACK.
  */
-template <std::size_t DIM_ROWS, std::size_t DIM_COLS> class mat {
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS, typename T = double> class mat {
 protected:
-    std::array<double, DIM_ROWS * DIM_COLS> _elem;
+    std::array<T, DIM_ROWS * DIM_COLS> _elem;
 
 public:
     // Default constructor and destructor
@@ -480,11 +480,11 @@ public:
     mat& operator=(mat&&) noexcept = default;
 
     // Other constructors
-    mat(std::array<double, DIM_ROWS * DIM_COLS>&& elm)
+    mat(std::array<T, DIM_ROWS * DIM_COLS>&& elm)
         : _elem{std::move(elm)} {}
 
-    mat(const double v) {
-        std::for_each(_elem.begin(), _elem.end(), [&v](double& e) { e = v; });
+    mat(const T v) {
+        std::for_each(_elem.begin(), _elem.end(), [&v](T& e) { e = v; });
     }
 
     /**
@@ -500,18 +500,18 @@ public:
     }
 
     /**
-     @brief Constructs a new matrix from an initializer_list of doubles
+     @brief Constructs a new matrix from an initializer_list of Ts
 
      @details This function assumes the list is in row major order.
      */
-    mat(const std::initializer_list<std::initializer_list<double>>& il) {
+    mat(const std::initializer_list<std::initializer_list<T>>& il) {
         std::size_t                             idx{0};
         std::size_t                             i{0};
         std::size_t                             count{DIM_ROWS * DIM_COLS};
-        std::array<double, DIM_ROWS* DIM_COLS>& elm = _elem;
+        std::array<T, DIM_ROWS* DIM_COLS>& elm {_elem};
 
         auto extract_row = [&i, &idx, &count,
-                            &elm](const std::initializer_list<double>& row) {
+                            &elm](const std::initializer_list<T>& row) {
             for (auto it = row.begin(); it < row.end(); ++it) {
                 elm[idx] = *it;
                 idx      = (idx + DIM_ROWS);
@@ -523,8 +523,8 @@ public:
     }
 
     // Access methods
-    std::array<double, DIM_ROWS * DIM_COLS>&       elem() { return _elem; }
-    const std::array<double, DIM_ROWS * DIM_COLS>& elem() const {
+    std::array<T, DIM_ROWS * DIM_COLS>&       elem() { return _elem; }
+    const std::array<T, DIM_ROWS * DIM_COLS>& elem() const {
         return _elem;
     }
 
@@ -533,12 +533,12 @@ public:
 
      @details Note that the elements of the matrix are in column major order.
      */
-    const double& operator()(const std::size_t i, const std::size_t j) const {
+    const T& operator()(const std::size_t i, const std::size_t j) const {
         return _elem[(i - 1) + (j - 1) * DIM_ROWS];
     }
 
-    double& operator()(const std::size_t i, const std::size_t j) {
-        return const_cast<double&>(static_cast<const mat&>(*this)(i, j));
+    T& operator()(const std::size_t i, const std::size_t j) {
+        return const_cast<T&>(static_cast<const mat&>(*this)(i, j));
     }
 
     // Dimension
@@ -551,7 +551,7 @@ public:
 
     // Extraction of a column or a row as a vector
     vec<DIM_ROWS> col(const std::size_t j) const {
-        std::array<double, DIM_ROWS> el{};
+        std::array<T, DIM_ROWS> el{};
 
         auto head = _elem.cbegin();
         if ((1 <= j) && (j <= DIM_COLS))
@@ -561,7 +561,7 @@ public:
     }
 
     vec<DIM_COLS> row(const std::size_t i) const {
-        std::array<double, DIM_COLS> el{};
+        std::array<T, DIM_COLS> el{};
 
         if ((1 <= i) && (i <= DIM_ROWS)) {
             auto it = _elem.cbegin() + (i - 1);
@@ -587,9 +587,9 @@ public:
         return *this;
     }
 
-    mat& operator+=(const double s) {
+    mat& operator+=(const T s) {
         std::transform(_elem.cbegin(), _elem.cend(), _elem.begin(),
-                       [s](const double e) { return e + s; });
+                       [s](const auto& e) { return e + s; });
         return *this;
     }
 
@@ -599,26 +599,31 @@ public:
         return *this;
     }
 
-    mat& operator*=(const double& s) {
+    mat& operator*=(const T& s) {
         std::transform(_elem.cbegin(), _elem.cend(), _elem.begin(),
                        [s](const auto& v) { return v * s; });
         return *this;
     }
 
-    mat& operator/=(const double& s) {
-        if (s == 0.)
-            throw std::runtime_error("[ERROR] Division by zero");
+    mat& operator/=(const T& s) {
         std::transform(_elem.cbegin(), _elem.cend(), _elem.begin(),
                        [s](const auto& v) { return v / s; });
         return *this;
     }
 
     // Matrix multiplication
-    mat& operator*=(const mat<DIM_COLS, DIM_COLS>& m) {
-        std::array<double, DIM_COLS * DIM_ROWS> elm;
-        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
-                    DIM_COLS, DIM_COLS, 1., _elem.data(), DIM_ROWS,
-                    m.elem().data(), DIM_COLS, 0., elm.data(), DIM_ROWS);
+    mat& operator*=(const mat<DIM_COLS, DIM_COLS, T>& m) {
+        std::array<T, DIM_COLS * DIM_ROWS> elm;
+        
+        if constexpr(std::is_same_v<T, double>)
+            cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
+                        DIM_COLS, DIM_COLS, 1., _elem.data(), DIM_ROWS,
+                        m.elem().data(), DIM_COLS, 0., elm.data(), DIM_ROWS);
+        else if constexpr(std::is_same_v<T, complex_t>)
+            cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
+                        DIM_COLS, DIM_COLS, 1., _elem.data(), DIM_ROWS,
+                        m.elem().data(), DIM_COLS, 0., elm.data(), DIM_ROWS);
+            
         _elem = std::move(elm);
         return *this;
     }

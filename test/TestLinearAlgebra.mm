@@ -684,9 +684,27 @@ void test_eigensystem () {
             XCTAssert(std::fabs(evec[i].real() - factor * l_evec2_re(i + 1, j + 1)) < 0.0001);
             XCTAssert(std::fabs(evec[i].imag() - factor * l_evec2_im(i + 1, j + 1)) < 0.0001);
         }
-
     }
 }
+
+void test_matrix_complex () {
+    mat<2, 2, complex_t> m1 {
+        {{1, 2}, {3, 4}},
+        {{5, 6}, {7, 8}}
+    };
+    
+    auto c11 = complex_t{1, 2};
+    auto c12 = complex_t{3, 4};
+    auto c21 = complex_t{5, 6};
+    auto c22 = complex_t{7, 8};
+    
+    XCTAssert(m1(1, 1) == c11);
+    XCTAssert(m1(1, 2) == c12);
+    XCTAssert(m1(2, 1) == c21);
+    XCTAssert(m1(2, 2) == c22);
+}
+
+
 
 
 
@@ -826,6 +844,10 @@ void test_eigensystem () {
 
 - (void)testComplexVector {
     test_vector_complex ();
+}
+
+- (void)testMatrixComplex {
+    test_matrix_complex ();
 }
 
 - (void)testPerformanceMatrixMultiplication {
