@@ -555,6 +555,19 @@ public:
 
         return vec<DIM_COLS, T>{std::move(el)};
     }
+    
+    // Replaces a column
+    void set_col(const size_t j, const vec<DIM_ROWS, T>& v) {
+        for (size_t i = 0; i < DIM_ROWS; ++i)
+            _elem[(j - 1) * DIM_ROWS + i] = v(i + 1);
+    }
+    
+    // Replaces a row
+    void set_row(const size_t i, const vec<DIM_COLS, T>& v) {
+        for (size_t j = 0; j < DIM_COLS; ++j)
+            _elem[j * DIM_ROWS + (i - 1)] = v(j + 1);
+    }
+
 
     // Equality
     bool operator==(const mat& rhs) const { return _elem == rhs._elem; }
@@ -994,6 +1007,7 @@ bool approx(const mat<DIM_ROWS, DIM_COLS, T>& M1,
     else
         return false;
 }
+
 
 // -----------------------------------------------------------------------------
 //                                                  Matrix Operations: Algebraic
