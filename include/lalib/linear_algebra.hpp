@@ -737,6 +737,21 @@ template <size_t DIM_ROWS, size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> randn() {
     return mat<DIM_ROWS, DIM_COLS>{std::move(elm)};
 }
 
+/**
+ @brief Creates a complex conjugate of a matrix
+ 
+ @details Note that when the input argument is a real matrix, this function
+ creates a complex matrix.
+ */
+template <size_t DIM_ROWS, size_t DIM_COLS, typename T> mat<DIM_ROWS, DIM_COLS, complex_t> conj(const mat<DIM_ROWS, DIM_COLS, T>& M) {
+    std::array<complex_t, DIM_ROWS*DIM_COLS> elm;
+    
+    auto conj = [](const auto& c){ return std::conj(c); };
+    std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), conj);
+    
+    return mat<DIM_ROWS, DIM_COLS, complex_t> {std::move(elm)};
+}
+
 // -----------------------------------------------------------------------------
 //                                                             Matrix Operations
 // -----------------------------------------------------------------------------

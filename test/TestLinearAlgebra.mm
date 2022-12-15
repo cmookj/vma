@@ -738,6 +738,22 @@ void test_matrix_complex () {
     XCTAssert(mv == mv_ans);
     
     std::cout << to_string(mv) << std::endl;
+    
+    mat<2, 2, complex_t> m2 = conj(m1);
+        
+    XCTAssert(m2(1, 1).real() == c11.real() && m2(1, 1).imag() == -c11.imag());
+    XCTAssert(m2(1, 2).real() == c12.real() && m2(1, 2).imag() == -c12.imag());
+    XCTAssert(m2(2, 1).real() == c21.real() && m2(2, 1).imag() == -c21.imag());
+    XCTAssert(m2(2, 2).real() == c22.real() && m2(2, 2).imag() == -c22.imag());
+    
+    mat<3, 3> rm1 {
+        {1, 2, 3}, {2, 3, 4}, {3, 4, 5}
+    };
+    
+    auto cm1 = conj(rm1);
+    for (std::size_t i = 1; i <= cm1.count_rows(); ++i)
+        for (std::size_t j = 1; j <= cm1.count_cols(); ++j)
+            XCTAssert(cm1(i, j).real() == rm1(i, j) && cm1(i, j).imag() == 0.);
 }
 
 
