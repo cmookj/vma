@@ -50,7 +50,6 @@ void test_vector_creation () {
 
 void test_vector_collinear () {
     vec<9> v1 {1., 2., 3., 4., 5., 6., 7., 8., 9.};
-    
     vec<9> v2 {2.*v1};
     
     XCTAssert(collinear(v1, v2));
@@ -189,17 +188,26 @@ void test_vector_complex () {
     vec<4, complex_t> cv2 {{1, 2}, {2, 3}, {3, 4}, {4, 5}};
     for (std::size_t i = 0; i < cv2.dim(); ++i)
         XCTAssert((cv2[i].real() == i + 1.) && (cv2[i].imag() == i + 2.));
-    
-    double re[] = {1., 2., 3., 4.};
-    vec<4, complex_t> cv3 {re};
-    for (std::size_t i = 0; i < cv3.dim(); ++i)
-        XCTAssert(cv3[i].real() == re[i] && cv3[i].imag() == 0.);
-    
+
     std::cout << to_string(cv2, output_fmt::sht) << std::endl;
     std::cout << to_string(cv2) << std::endl;
     std::cout << to_string(cv2, output_fmt::ext) << std::endl;
     std::cout << to_string(cv2, output_fmt::sci) << std::endl;
     std::cout << to_string(cv2, output_fmt::scx) << std::endl;
+
+    double re[] = {1., 2., 3., 4.};
+    vec<4, complex_t> cv3 {re};
+    for (std::size_t i = 0; i < cv3.dim(); ++i)
+        XCTAssert(cv3[i].real() == re[i] && cv3[i].imag() == 0.);
+    
+    vec<4, complex_t> cv4 = conj(cv2);
+    for (std::size_t i = 0; i < cv4.dim(); ++i)
+        XCTAssert(cv2[i].real() == cv4[i].real() && cv2[i].imag() == -cv4[i].imag());
+    
+    vec<4> rv1 {re};
+    vec<4, complex_t> cv5 = conj(rv1);
+    for (std::size_t i = 0; i < cv5.dim(); ++i)
+        XCTAssert(cv5[i].real() == rv1[i] && cv5[i].imag() == 0.);
 }
 
 void test_matrix_creation_indexing () {
@@ -606,10 +614,10 @@ void test_eigensystem () {
         // Eigenvector
         double factor {0.};
         if (std::fabs(evec1(1, j + 1)) > EPS)
-            factor = es1.eigvecs_r[j][0].real() / evec1(1, j + 1);
+            factor = es1.eigvecs_rt(1, j + 1).real() / evec1(1, j + 1);
 
         for (std::size_t i = 0; i < 4; ++i)
-            XCTAssert(std::fabs(es1.eigvecs_r[j][i].real() - factor * evec1(i + 1, j + 1)) < 0.0001);
+            XCTAssert(std::fabs(es1.eigvecs_rt(i + 1, j + 1).real() - factor * evec1(i + 1, j + 1)) < 0.0001);
     }
     
     mat<4, 4> m2 {
@@ -667,22 +675,22 @@ void test_eigensystem () {
         
         // Right
         if (std::fabs(r_evec2_re(1, j + 1)) > EPS)
-            factor = es2.eigvecs_r[j][0].real() / r_evec2_re(1, j + 1);
+            factor = es2.eigvecs_rt(1, j + 1).real() / r_evec2_re(1, j + 1);
 
         for (std::size_t i = 0; i < 4; ++i) {
-            auto evec = es2.eigvecs_r[j];
-            XCTAssert(std::fabs(evec[i].real() - factor * r_evec2_re(i + 1, j + 1)) < 0.0001);
-            XCTAssert(std::fabs(evec[i].imag() - factor * r_evec2_im(i + 1, j + 1)) < 0.0001);
+            auto evec = es2.eigvecs_rt.col(j + 1);
+            XCTAssert(std::fabs(evec(i + 1).real() - factor * r_evec2_re(i + 1, j + 1)) < 0.0001);
+            XCTAssert(std::fabs(evec(i + 1).imag() - factor * r_evec2_im(i + 1, j + 1)) < 0.0001);
         }
         
         // Left
         if (std::fabs(l_evec2_re(1, j + 1)) > EPS)
-            factor = es2.eigvecs_l[j][0].real() / l_evec2_re(1, j + 1);
+            factor = es2.eigvecs_lft(1, j + 1).real() / l_evec2_re(1, j + 1);
 
         for (std::size_t i = 0; i < 4; ++i) {
-            auto evec = es2.eigvecs_l[j];
-            XCTAssert(std::fabs(evec[i].real() - factor * l_evec2_re(i + 1, j + 1)) < 0.0001);
-            XCTAssert(std::fabs(evec[i].imag() - factor * l_evec2_im(i + 1, j + 1)) < 0.0001);
+            auto evec = es2.eigvecs_lft.col(j + 1);
+            XCTAssert(std::fabs(evec(i + 1).real() - factor * l_evec2_re(i + 1, j + 1)) < 0.0001);
+            XCTAssert(std::fabs(evec(i + 1).imag() - factor * l_evec2_im(i + 1, j + 1)) < 0.0001);
         }
     }
 }
@@ -702,10 +710,35 @@ void test_matrix_complex () {
     XCTAssert(m1(1, 2) == c12);
     XCTAssert(m1(2, 1) == c21);
     XCTAssert(m1(2, 2) == c22);
+    
+    auto col1 = m1.col(1);
+    vec<2, complex_t> col1_ans {{1, 2}, {5, 6}};
+    XCTAssert(col1 == col1_ans);
+    
+    auto col2 = m1.col(2);
+    vec<2, complex_t> col2_ans {{3, 4}, {7, 8}};
+    XCTAssert(col2 == col2_ans);
+    
+    auto row1 = m1.row(1);
+    vec<2, complex_t> row1_ans {{1, 2}, {3, 4}};
+    XCTAssert(row1 == row1_ans);
+    
+    auto row2 = m1.row(2);
+    vec<2, complex_t> row2_ans {{5, 6}, {7, 8}};
+    XCTAssert(row2 == row2_ans);
+    
+    std::cout << to_string(m1) << std::endl;
+    
+    vec<2, complex_t> v1 {
+        {1, 2}, {3, 4}
+    };
+    
+    auto mv = m1 * v1;
+    vec<2, complex_t> mv_ans {{-10, 28}, {-18, 68}};
+    XCTAssert(mv == mv_ans);
+    
+    std::cout << to_string(mv) << std::endl;
 }
-
-
-
 
 
 @interface TestLinearAlgebra : XCTestCase

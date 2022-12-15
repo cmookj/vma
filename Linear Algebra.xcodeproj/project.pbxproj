@@ -7,12 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E06E766294BA74B00739C38 /* linear_algebra.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E06E765294BA74B00739C38 /* linear_algebra.cpp */; };
+		0E06E767294BA8B100739C38 /* libLinear Algebra.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EADEFA12931EBC800B0374E /* libLinear Algebra.dylib */; platformFilters = (macos, ); };
 		0E39C7F72938D0F50031FBFB /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E39C7F62938D0F50031FBFB /* Accelerate.framework */; };
 		0E39C7F92938D8FD0031FBFB /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E39C7F82938D8FD0031FBFB /* Accelerate.framework */; };
 		0EADEFC72931EFF300B0374E /* TestLinearAlgebra.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0EADEFC62931EFF300B0374E /* TestLinearAlgebra.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0E06E765294BA74B00739C38 /* linear_algebra.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = linear_algebra.cpp; sourceTree = "<group>"; };
 		0E39C7F62938D0F50031FBFB /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		0E39C7F82938D8FD0031FBFB /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/Accelerate.framework; sourceTree = DEVELOPER_DIR; };
 		0EADEFA12931EBC800B0374E /* libLinear Algebra.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libLinear Algebra.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -38,12 +41,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				0E39C7F92938D8FD0031FBFB /* Accelerate.framework in Frameworks */,
+				0E06E767294BA8B100739C38 /* libLinear Algebra.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0E06E764294BA73300739C38 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				0E06E765294BA74B00739C38 /* linear_algebra.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 		0EADEF982931EBC800B0374E = {
 			isa = PBXGroup;
 			children = (
@@ -51,6 +63,7 @@
 				0EADEFB12931EC1400B0374E /* doc */,
 				0EADEFAF2931EC1400B0374E /* include */,
 				0EADEFB32931EC1500B0374E /* README.md */,
+				0E06E764294BA73300739C38 /* src */,
 				0EADEFB22931EC1400B0374E /* test */,
 				0EADEFA22931EBC800B0374E /* Products */,
 				0EADEFCC2931F09D00B0374E /* Frameworks */,
@@ -129,7 +142,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1410;
+				LastUpgradeCheck = 1420;
 				TargetAttributes = {
 					0EADEFA02931EBC800B0374E = {
 						CreatedOnToolsVersion = 14.1;
@@ -173,6 +186,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0E06E766294BA74B00739C38 /* linear_algebra.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,6 +234,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -278,6 +293,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -301,6 +317,7 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = PJMW65YB82;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -332,6 +349,7 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = PJMW65YB82;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -364,6 +382,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = PJMW65YB82;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -398,6 +417,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = PJMW65YB82;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GENERATE_INFOPLIST_FILE = YES;
