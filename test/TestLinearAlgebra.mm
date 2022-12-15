@@ -37,11 +37,11 @@ void test_vector_creation () {
     for (std::size_t i = 1; i <= v6.dim(); ++i)
         XCTAssert(v6(i) == (2.*i - 1.) * std::pow(-1., i));
     
-    std::cout << str(v6, output_fmt::sht) << std::endl;
-    std::cout << str(v6) << std::endl;
-    std::cout << str(v6, output_fmt::ext) << std::endl;
-    std::cout << str(v6, output_fmt::sci) << std::endl;
-    std::cout << str(v6, output_fmt::scx) << std::endl;
+    std::cout << to_string(v6, output_fmt::sht) << std::endl;
+    std::cout << to_string(v6) << std::endl;
+    std::cout << to_string(v6, output_fmt::ext) << std::endl;
+    std::cout << to_string(v6, output_fmt::sci) << std::endl;
+    std::cout << to_string(v6, output_fmt::scx) << std::endl;
     
     auto v7 = rand<100>();
     
@@ -195,11 +195,11 @@ void test_vector_complex () {
     for (std::size_t i = 0; i < cv3.dim(); ++i)
         XCTAssert(cv3[i].real() == re[i] && cv3[i].imag() == 0.);
     
-    std::cout << str(cv2, output_fmt::sht) << std::endl;
-    std::cout << str(cv2) << std::endl;
-    std::cout << str(cv2, output_fmt::ext) << std::endl;
-    std::cout << str(cv2, output_fmt::sci) << std::endl;
-    std::cout << str(cv2, output_fmt::scx) << std::endl;
+    std::cout << to_string(cv2, output_fmt::sht) << std::endl;
+    std::cout << to_string(cv2) << std::endl;
+    std::cout << to_string(cv2, output_fmt::ext) << std::endl;
+    std::cout << to_string(cv2, output_fmt::sci) << std::endl;
+    std::cout << to_string(cv2, output_fmt::scx) << std::endl;
 }
 
 void test_matrix_creation_indexing () {
@@ -213,11 +213,11 @@ void test_matrix_creation_indexing () {
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
             XCTAssert(m1(i, j) == (i - 1.) + j);
     
-    std::cout << m1.str(output_fmt::sht) << std::endl;
-    std::cout << m1.str() << std::endl;
-    std::cout << m1.str(output_fmt::ext) << std::endl;
-    std::cout << m1.str(output_fmt::sci) << std::endl;
-    std::cout << m1.str(output_fmt::scx) << std::endl;
+    std::cout << to_string(m1, output_fmt::sht) << std::endl;
+    std::cout << to_string(m1) << std::endl;
+    std::cout << to_string(m1, output_fmt::ext) << std::endl;
+    std::cout << to_string(m1, output_fmt::sci) << std::endl;
+    std::cout << to_string(m1, output_fmt::scx) << std::endl;
     
     mat<3, 4> m2 {{1., -2, 3, -4}, {-2., 3, -4, 5.}, {3., -4, 5, -6}};
     for (std::size_t i = 1; i <= m2.count_rows(); ++i )
@@ -251,6 +251,15 @@ void test_matrix_creation_indexing () {
     for (std::size_t i = 1; i <= m7.count_rows(); ++i)
         for (std::size_t j = 1; j <= m7.count_cols(); ++j)
             XCTAssert(m7(i, j) == (i == j ? el1[i - 1] : 0.));
+}
+
+void test_matrix_comparison () {
+    std::array<double, 12> e1 {1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.};
+    std::array<double, 12> e2 {1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.};
+    mat<3, 4> m1 {std::move(e1)};
+    mat<3, 4> m2 {std::move(e2)};
+    
+    XCTAssert(m1 == m2);
 }
 
 void test_matrix_vector_extraction () {
@@ -741,6 +750,10 @@ void test_eigensystem () {
 
 - (void)testMatrixCreationIndexing {
     test_matrix_creation_indexing ();
+}
+
+- (void)testMatrixComparison {
+    test_matrix_comparison ();
 }
 
 - (void)testMatrixVecExtraction {

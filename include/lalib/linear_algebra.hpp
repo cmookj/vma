@@ -175,10 +175,10 @@ public:
 };
 
 /**
- @brief Represents the vector as a text string
+ @brief Represents a vector as a string
  */
 template <std::size_t DIM, typename T = double>
-std::string str(const vec<DIM, T>& v, output_fmt fmt = output_fmt::nml) {
+std::string to_string(const vec<DIM, T>& v, output_fmt fmt = output_fmt::nml) {
     std::stringstream strm{};
 
     int width;
@@ -464,8 +464,6 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b) {
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS> class mat {
 protected:
-    std::size_t                             _count_rows = DIM_ROWS;
-    std::size_t                             _count_cols = DIM_COLS;
     std::array<double, DIM_ROWS * DIM_COLS> _elem;
 
 public:
@@ -483,7 +481,7 @@ public:
 
     // Other constructors
     mat(std::array<double, DIM_ROWS * DIM_COLS>&& elm)
-        : _count_rows{DIM_ROWS}, _count_cols{DIM_COLS}, _elem{std::move(elm)} {}
+        : _elem{std::move(elm)} {}
 
     mat(const double v) {
         std::for_each(_elem.begin(), _elem.end(), [&v](double& e) { e = v; });
@@ -536,7 +534,7 @@ public:
      @details Note that the elements of the matrix are in column major order.
      */
     const double& operator()(const std::size_t i, const std::size_t j) const {
-        return _elem[(i - 1) + (j - 1) * _count_rows];
+        return _elem[(i - 1) + (j - 1) * DIM_ROWS];
     }
 
     double& operator()(const std::size_t i, const std::size_t j) {
@@ -545,11 +543,11 @@ public:
 
     // Dimension
     std::pair<std::size_t, std::size_t> dim() const {
-        return std::make_pair(_count_rows, _count_cols);
+        return std::make_pair(DIM_ROWS, DIM_COLS);
     }
 
-    std::size_t count_rows() const { return _count_rows; }
-    std::size_t count_cols() const { return _count_cols; }
+    std::size_t count_rows() const { return DIM_ROWS; }
+    std::size_t count_cols() const { return DIM_COLS; }
 
     // Extraction of a column or a row as a vector
     vec<DIM_ROWS> col(const std::size_t j) const {
@@ -578,8 +576,7 @@ public:
 
     // Equality
     bool operator==(const mat& rhs) const {
-        return _elem == rhs._elem && _count_rows == rhs._count_rows &&
-               _count_cols == rhs._count_cols;
+        return _elem == rhs._elem;
     }
     bool operator!=(const mat& rhs) const { return !(*this == rhs); }
 
@@ -625,65 +622,68 @@ public:
         _elem = std::move(elm);
         return *this;
     }
-
-    // Description (convert to string)
-    std::string str(output_fmt fmt = output_fmt::nml) const {
-        std::stringstream strm{};
-
-        int width;
-        int precision;
-
-        std::ios_base::fmtflags options;
-
-        switch (fmt) {
-        case output_fmt::sht:
-            options   = std::ios_base::fixed;
-            precision = 2;
-            width     = 8;
-            break;
-
-        case output_fmt::nml:
-            options   = std::ios_base::fixed;
-            precision = 4;
-            width     = 10;
-            break;
-
-        case output_fmt::ext:
-            options   = std::ios_base::fixed;
-            precision = 8;
-            width     = 14;
-            break;
-
-        case output_fmt::sci:
-            options   = std::ios_base::scientific;
-            precision = 4;
-            width     = 10;
-            break;
-
-        case output_fmt::scx:
-            options   = std::ios_base::scientific;
-            precision = 8;
-            width     = 18;
-        }
-
-        strm.setf(options, std::ios_base::floatfield);
-        strm.precision(precision);
-
-        for (std::size_t i = 0; i < _count_rows; ++i) {
-            strm << "[ ";
-
-            for (std::size_t j = 0; j < _count_cols; ++j) {
-                strm.width(width);
-
-                strm << _elem[j * _count_rows + i] << ", ";
-            }
-
-            strm << "]\n";
-        }
-
-        return strm.str();
-    }
 };
+
+/**
+ @brief Represents a matrix as a string
+ */
+template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
+std::string to_string(const mat<DIM_ROWS, DIM_COLS>& mat, output_fmt fmt = output_fmt::nml) {
+    std::stringstream strm{};
+
+    int width;
+    int precision;
+
+    std::ios_base::fmtflags options;
+
+    switch (fmt) {
+    case output_fmt::sht:
+        options   = std::ios_base::fixed;
+        precision = 2;
+        width     = 8;
+        break;
+
+    case output_fmt::nml:
+        options   = std::ios_base::fixed;
+        precision = 4;
+        width     = 10;
+        break;
+
+    case output_fmt::ext:
+        options   = std::ios_base::fixed;
+        precision = 8;
+        width     = 14;
+        break;
+
+    case output_fmt::sci:
+        options   = std::ios_base::scientific;
+        precision = 4;
+        width     = 10;
+        break;
+
+    case output_fmt::scx:
+        options   = std::ios_base::scientific;
+        precision = 8;
+        width     = 18;
+    }
+
+    strm.setf(options, std::ios_base::floatfield);
+    strm.precision(precision);
+
+    for (std::size_t i = 0; i < DIM_ROWS; ++i) {
+        strm << "[ ";
+
+        for (std::size_t j = 0; j < DIM_COLS; ++j) {
+            strm.width(width);
+
+            strm << mat.elem()[j * DIM_ROWS + i] << ", ";
+        }
+
+        strm << "]\n";
+    }
+
+    return strm.str();
+}
 
 // -----------------------------------------------------------------------------
 //                                                       Special Matrix Creation
@@ -762,7 +762,6 @@ mat<DIM_ROWS, DIM_COLS> diag(const vec<DIM>& v) {
  */
 template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
 mat<DIM_ROWS, DIM_COLS> rand() {
-    // mat<DIM_ROWS, DIM_COLS> m {};
     std::array<double, DIM_ROWS * DIM_COLS> elm;
 
     std::random_device               rdu;
@@ -1192,53 +1191,6 @@ svd_t<DIM_ROWS, DIM_COLS> svd(const mat<DIM_ROWS, DIM_COLS>& M) {
         U, vec<std::min(DIM_ROWS, DIM_COLS)>(s.get()), transpose(Vt)};
 }
 
-template <std::size_t DIM_ROWS, std::size_t DIM_COLS>
-vec<std::min(DIM_ROWS, DIM_COLS)> svd(const mat<DIM_ROWS, DIM_COLS>& M,
-                                      mat<DIM_ROWS, DIM_ROWS>&       U,
-                                      mat<DIM_COLS, DIM_COLS>&       Vt) {
-    integer_t m{static_cast<integer_t>(DIM_ROWS)};
-    integer_t n{static_cast<integer_t>(DIM_COLS)};
-    integer_t lda  = m;
-    integer_t ldu  = m;
-    integer_t ldvt = n;
-    integer_t ds   = std::min(m, n);
-
-    char      jobz = 'A';
-    integer_t lwork =
-        3 * ds * ds +
-        std::max(std::max(m, n),
-                 5 * std::min(m, n) * std::min(m, n) + 4 * std::min(m, n));
-
-    auto el = std::make_unique<real_t[]>(DIM_ROWS * DIM_COLS);
-    std::memcpy(el.get(), M.elem().data(),
-                sizeof(real_t) * DIM_ROWS * DIM_COLS);
-
-    auto      s     = std::make_unique<real_t[]>(ds);
-    auto      u     = std::make_unique<real_t[]>(ldu * m);
-    auto      vt    = std::make_unique<real_t[]>(ldvt * n);
-    auto      work  = std::make_unique<real_t[]>(std::max(1, lwork));
-    auto      iwork = std::make_unique<integer_t[]>(8 * ds);
-    integer_t info;
-
-    dgesdd_(&jobz, &m, &n, el.get(), &lda, s.get(), u.get(), &ldu, vt.get(),
-            &ldvt, work.get(), &lwork, iwork.get(), &info);
-
-    if (info > 0) {
-        throw std::runtime_error{"The algorithm for SVD failed to converge."};
-    }
-
-    // Copy u to the matrix U
-    std::memcpy(U.elem().data(), u.get(), sizeof(real_t) * DIM_ROWS * DIM_ROWS);
-
-    // Copy vt to the matrix Vt and transpose it
-    mat<DIM_COLS, DIM_COLS> V{};
-    std::memcpy(V.elem().data(), vt.get(),
-                sizeof(real_t) * DIM_COLS * DIM_COLS);
-    Vt = transpose(V);
-
-    return vec<std::min(DIM_ROWS, DIM_COLS)>(s.get());
-}
-
 /**
  @brief Checks whether the matrix is symmetric
  */
@@ -1297,7 +1249,8 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
             }
         } else
             throw std::runtime_error{"Failed to calculate eigenvalues."};
-    } else {
+    }
+    else {
         char          JOBVL, JOBVR;
         integer_t     LDVL{N};
         integer_t     LDVR{N};
@@ -1365,7 +1318,8 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
 
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
-                    } else { // Real
+                    }
+                    else { // Real
                         // Right Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N);
                              ++i)
@@ -1397,7 +1351,8 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
 
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
-                    } else { // Real
+                    }
+                    else { // Real
                         // Left Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N);
                              ++i)
@@ -1424,7 +1379,8 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
 
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
-                    } else { // Real
+                    }
+                    else { // Real
                         // Right Eigenvectors
                         for (std::size_t i = 0; i < static_cast<std::size_t>(N);
                              ++i)
@@ -1433,7 +1389,8 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
                     break;
                 }
             }
-        } else
+        }
+        else
             throw std::runtime_error{"Failed to calculate eigenvalues."};
     }
 
