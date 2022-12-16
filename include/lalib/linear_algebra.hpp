@@ -71,7 +71,6 @@ const unsigned INF =
 
 using std::size_t;
 
-
 // =============================================================================
 //                                                                  Enumerations
 // =============================================================================
@@ -85,13 +84,11 @@ enum class eigen { val, vec, lvec, rvec };
 
 using complex_t = std::complex<double>;
 
-
 // =============================================================================
 //                                                                     Utilities
 // =============================================================================
 #pragma mark - Utilities
 int set_format(std::stringstream& strm, output_fmt fmt = output_fmt::nml);
-
 
 // =============================================================================
 //                                                     C L A S S  :  V E C T O R
@@ -193,7 +190,7 @@ std::string to_string(const vec<DIM, T>& v, output_fmt fmt = output_fmt::nml) {
     std::stringstream strm{};
 
     int width = set_format(strm, fmt);
-    
+
     auto print = [&strm, &width](const T& v) {
         strm.width(width);
         strm << v << ", ";
@@ -243,17 +240,61 @@ template <size_t DIM> vec<DIM> randn() {
 
 /**
  @brief Creates a complex conjugate of a vector
- 
+
  @details Note that when the input argument is a real vector, this function
  creates a complex vector.
  */
-template <size_t DIM, typename T> vec<DIM, complex_t> conj(const vec<DIM, T>& v) {
+template <size_t DIM, typename T>
+vec<DIM, complex_t> conj(const vec<DIM, T>& v) {
+    std::array<complex_t, DIM> elm;
+
+    auto conj = [](const auto& c) { return std::conj(c); };
+    std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), conj);
+
+    return vec<DIM, complex_t>{std::move(elm)};
+}
+
+/**
+ @brief Creates a new complex vector from two old-fashioned arrays of doubles
+
+ @details This function assumes the arrays are in row major order.
+ */
+template <size_t DIM>
+vec<DIM, complex_t> cvec(const double* re, const double* im) {
     std::array<complex_t, DIM> elm;
     
-    auto conj = [](const auto& c){ return std::conj(c); };
-    std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), conj);
+    for (size_t i = 0; i < DIM; ++i)
+        elm[i] = complex_t{re[i], im[i]};
     
-    return vec<DIM, complex_t> {std::move(elm)};
+    return vec<DIM, complex_t>{std::move(elm)};
+}
+
+/**
+ @brief Creates a new complex vector from two real vectors
+ */
+template <size_t DIM>
+vec<DIM, complex_t> cvec(const vec<DIM>& re, const vec<DIM>& im) {
+    std::array<complex_t, DIM> elm;
+    
+    for (size_t i = 0; i < DIM; ++i)
+        elm[i] = complex_t{re.elem()[i], im.elem()[i]};
+    
+    return vec<DIM, complex_t>{std::move(elm)};
+}
+
+/**
+ @brief Creates a new complex vector from a real vector
+ 
+ @details The imaginary parts are all set to 0.
+ */
+template <size_t DIM>
+vec<DIM, complex_t> cvec(const vec<DIM>& re) {
+    std::array<complex_t, DIM> elm;
+    
+    for (size_t i = 0; i < DIM; ++i)
+        elm[i] = complex_t{re.elem()[i], 0.};
+    
+    return vec<DIM, complex_t>{std::move(elm)};
 }
 
 // -----------------------------------------------------------------------------
@@ -372,6 +413,49 @@ vec<DIM, T> operator/(const vec<DIM, T>& a, const double s) {
 }
 
 /**
+ @brief Extracts real part of a complex vector as a new real vector
+ */
+template <size_t DIM>
+vec<DIM> real(const vec<DIM, complex_t>& v) {
+    std::array<double, DIM> elm {};
+    
+    auto re = [](const complex_t& c){ return c.real(); };
+    std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), re);
+    
+    return vec<DIM>{std::move(elm)};
+}
+
+/**
+ @brief Extracts imaginary part of a complex vector as a new real vector
+ */
+template <size_t DIM>
+vec<DIM> imag(const vec<DIM, complex_t>& v) {
+    std::array<double, DIM> elm {};
+    
+    auto im = [](const complex_t& c){ return c.imag(); };
+    std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), im);
+    
+    return vec<DIM>{std::move(elm)};
+}
+
+/**
+ @brief Determines whether two vectors are close to each other
+ */
+template <size_t DIM, typename T>
+bool close(const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = EPS) {
+    auto diff = a - b;
+    auto abs_square = [](const auto& v){ return std::abs(v * v); };
+    
+    std::transform(diff.elem().cbegin(), diff.elem().cend(), diff.elem().begin(), abs_square);
+    double sum = std::accumulate(diff.elem().cbegin(), diff.elem().cend(), 0.);
+    
+    if (std::sqrt(sum/static_cast<double>(DIM)) < tol)
+        return true;
+    else
+        return false;
+}
+
+/**
  @brief Determines whether two real vectors have the same direction
  */
 template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) {
@@ -403,6 +487,38 @@ template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) {
 }
 
 /**
+ @brief Determines whether two real vectors have nearly the same direction
+ */
+template <size_t DIM> bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = EPS) {
+    std::array<double, DIM> ratio{};
+    std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
+                   ratio.begin(), std::divides<>{});
+
+    // Originally, the following expression in if statement should be either
+    //   if (std::adjacent_find(ratio.begin(), ratio.end(),
+    //   std::not_equal_to<>())
+    //       == ratio.end())
+    // or,
+    //   if (std::equal(ratio.begin() + 1, ratio.end(), ratio.begin()))
+    //
+    // But, to ignore 'nan' which is the result of 0./0., we need a special
+    // predicate.
+    auto nan_skipping_not_equal_to = [&tol](const double& a, const double& b) {
+        if (isnan(a) || isnan(b))
+            return false;
+        else
+            return std::abs(a - b) > tol;
+    };
+
+    if (std::adjacent_find(ratio.begin(), ratio.end(),
+                           nan_skipping_not_equal_to) == ratio.end())
+        return true;
+
+    return false;
+}
+
+
+/**
  @brief Determines whether two compelx vectors have the same direction
  */
 template <size_t DIM>
@@ -427,6 +543,40 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b) {
             return false;
         else
             return a != b;
+    };
+
+    if (std::adjacent_find(ratio.begin(), ratio.end(),
+                           nan_skipping_not_equal_to) == ratio.end())
+        return true;
+
+    return false;
+}
+
+/**
+ @brief Determines whether two compelx vectors have nearly the same direction
+ */
+template <size_t DIM>
+bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, double tol = EPS) {
+    std::array<complex_t, DIM> ratio{};
+    std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
+                   ratio.begin(), std::divides<>{});
+
+    // Originally, the following expression in if statement should be either
+    //   if (std::adjacent_find(ratio.begin(), ratio.end(),
+    //   std::not_equal_to<>())
+    //       == ratio.end())
+    // or,
+    //   if (std::equal(ratio.begin() + 1, ratio.end(), ratio.begin()))
+    //
+    // But, to ignore 'nan' which is the result of 0./0., we need a special
+    // predicate.
+    auto nan_skipping_not_equal_to = [&tol](const complex_t& a,
+                                        const complex_t& b) {
+        if ((isnan(a.real()) && isnan(b.real())) ||
+            (isnan(a.imag()) && isnan(b.imag())))
+            return false;
+        else
+            return std::abs(a - b) > tol;
     };
 
     if (std::adjacent_find(ratio.begin(), ratio.end(),
@@ -555,19 +705,18 @@ public:
 
         return vec<DIM_COLS, T>{std::move(el)};
     }
-    
+
     // Replaces a column
     void set_col(const size_t j, const vec<DIM_ROWS, T>& v) {
         for (size_t i = 0; i < DIM_ROWS; ++i)
             _elem[(j - 1) * DIM_ROWS + i] = v(i + 1);
     }
-    
+
     // Replaces a row
     void set_row(const size_t i, const vec<DIM_COLS, T>& v) {
         for (size_t j = 0; j < DIM_COLS; ++j)
             _elem[j * DIM_ROWS + (i - 1)] = v(j + 1);
     }
-
 
     // Equality
     bool operator==(const mat& rhs) const { return _elem == rhs._elem; }
@@ -645,6 +794,32 @@ std::string to_string(const mat<DIM_ROWS, DIM_COLS, T>& M,
     }
 
     return strm.str();
+}
+
+/**
+ @brief Extracts real part of a complex matrix as a new real matrix
+ */
+template <size_t DIM_ROWS, size_t DIM_COLS>
+mat<DIM_ROWS, DIM_COLS> real(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
+    std::array<double, DIM_ROWS * DIM_COLS> elm {};
+    
+    auto re = [](const complex_t& c){ return c.real(); };
+    std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), re);
+    
+    return mat<DIM_ROWS, DIM_COLS>{std::move(elm)};
+}
+
+/**
+ @brief Extracts imaginary part of a complex matrix as a new real matrix
+ */
+template <size_t DIM_ROWS, size_t DIM_COLS>
+mat<DIM_ROWS, DIM_COLS> imag(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
+    std::array<double, DIM_ROWS * DIM_COLS> elm {};
+    
+    auto im = [](const complex_t& c){ return c.imag(); };
+    std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), im);
+    
+    return mat<DIM_ROWS, DIM_COLS>{std::move(elm)};
 }
 
 // -----------------------------------------------------------------------------
@@ -752,17 +927,37 @@ template <size_t DIM_ROWS, size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> randn() {
 
 /**
  @brief Creates a complex conjugate of a matrix
- 
+
  @details Note that when the input argument is a real matrix, this function
  creates a complex matrix.
  */
-template <size_t DIM_ROWS, size_t DIM_COLS, typename T> mat<DIM_ROWS, DIM_COLS, complex_t> conj(const mat<DIM_ROWS, DIM_COLS, T>& M) {
-    std::array<complex_t, DIM_ROWS*DIM_COLS> elm;
-    
-    auto conj = [](const auto& c){ return std::conj(c); };
+template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
+mat<DIM_ROWS, DIM_COLS, complex_t> conj(const mat<DIM_ROWS, DIM_COLS, T>& M) {
+    std::array<complex_t, DIM_ROWS * DIM_COLS> elm;
+
+    auto conj = [](const auto& c) { return std::conj(c); };
     std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), conj);
+
+    return mat<DIM_ROWS, DIM_COLS, complex_t>{std::move(elm)};
+}
+
+/**
+ @brief Creates a new complex matrix from two old-fashioned arrays of doubles
+
+ @details This function assumes the arrays are in row major order.
+ */
+template <size_t DIM_ROWS, size_t DIM_COLS>
+mat<DIM_ROWS, DIM_COLS, complex_t> cmat(const double* re, const double* im) {
+    std::array<complex_t, DIM_ROWS * DIM_COLS> elm;
     
-    return mat<DIM_ROWS, DIM_COLS, complex_t> {std::move(elm)};
+    size_t idx{0};
+    for (size_t i = 0; i < DIM_ROWS; ++i)
+        for (size_t j = 0; j < DIM_COLS; ++j) {
+            elm[j * DIM_ROWS + i] = complex_t{re[idx], im[idx]};
+            idx++;
+        }
+    
+    return mat<DIM_ROWS, DIM_COLS, complex_t>{std::move(elm)};
 }
 
 // -----------------------------------------------------------------------------
@@ -1007,7 +1202,6 @@ bool approx(const mat<DIM_ROWS, DIM_COLS, T>& M1,
     else
         return false;
 }
-
 
 // -----------------------------------------------------------------------------
 //                                                  Matrix Operations: Algebraic
@@ -1262,6 +1456,7 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
         integer_t     LDVR{N};
         mat<DIM, DIM> VL{};
         mat<DIM, DIM> VR{};
+        size_t UN{static_cast<size_t>(N)};
 
         switch (js) {
         case eigen::val: JOBVL = JOBVR = 'N'; break;
@@ -1286,7 +1481,7 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
                &LWORK, &INFO);
 
         if (INFO == 0) {
-            for (size_t j = 1; j <= static_cast<size_t>(N); ++j) {
+            for (size_t j = 1; j <= UN; ++j) {
                 // Eigenvalue
                 es.eigvals[j - 1] = complex_t{WR[j - 1], WI[j - 1]};
 
@@ -1294,89 +1489,66 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
                 case eigen::val: break;
 
                 case eigen::vec:
-                    if (WI[j - 1] != 0. && j < static_cast<size_t>(N) &&
-                        WI[j - 1] == -WI[j]) {
+                    if (WI[j - 1] != 0. && j < UN && WI[j - 1] == -WI[j]) {
                         // Complex conjugate
 
                         // Next Eigenvalue
                         es.eigvals[j] = complex_t{WR[j], WI[j]};
 
                         // Right Eigenvectors
-                        for (size_t i = 1; i <= static_cast<size_t>(N); ++i) {
-                            es.eigvecs_rt(i, j) =
-                                complex_t{VR(i, j), VR(i, j + 1)};
-                            es.eigvecs_rt(i, j + 1) =
-                                complex_t{VR(i, j), -VR(i, j + 1)};
-                        }
+                        es.eigvecs_rt.set_col(j, cvec(VR.col(j), VR.col(j + 1)));
+                        es.eigvecs_rt.set_col(j + 1, cvec(VR.col(j), -VR.col(j + 1)));
 
                         // Left Eigenvectors
-                        for (size_t i = 1; i <= static_cast<size_t>(N); ++i) {
-                            es.eigvecs_lft(i, j) =
-                                complex_t{VL(i, j), VL(i, j + 1)};
-                            es.eigvecs_lft(i, j + 1) =
-                                complex_t{VL(i, j), -VL(i, j + 1)};
-                        }
+                        es.eigvecs_lft.set_col(j, cvec(VL.col(j), VL.col(j + 1)));
+                        es.eigvecs_lft.set_col(j + 1, cvec(VL.col(j), -VL.col(j + 1)));
 
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
                     } else { // Real
                         // Right Eigenvectors
-                        for (size_t i = 1; i <= static_cast<size_t>(N); ++i)
-                            es.eigvecs_rt(i, j) = complex_t{VR(i, j)};
+                        es.eigvecs_rt.set_col(j, cvec(VR.col(j)));
 
                         // Left Eigenvectors
-                        for (size_t i = 1; i <= static_cast<size_t>(N); ++i)
-                            es.eigvecs_lft(i, j) = complex_t{VL(i, j)};
+                        es.eigvecs_lft.set_col(j, cvec(VL.col(j)));
                     }
                     break;
 
                 case eigen::lvec:
-                    if (WI[j - 1] != 0. && j < static_cast<size_t>(N) &&
-                        WI[j - 1] == -WI[j]) {
+                    if (WI[j - 1] != 0. && j < UN && WI[j - 1] == -WI[j]) {
                         // Complex conjugate
 
                         // Next Eigenvalue
                         es.eigvals[j] = complex_t{WR[j], WI[j]};
 
                         // Left Eigenvectors
-                        for (size_t i = 1; i <= static_cast<size_t>(N); ++i) {
-                            es.eigvecs_lft(i, j) =
-                                complex_t{VL(i, j), VL(i, j + 1)};
-                            es.eigvecs_lft(i, j + 1) =
-                                complex_t{VL(i, j), -VL(i, j + 1)};
-                        }
-
+                        es.eigvecs_lft.set_col(j, cvec(VL.col(j), VL.col(j + 1)));
+                        es.eigvecs_lft.set_col(j + 1, cvec(VL.col(j), -VL.col(j + 1)));
+                        
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
                     } else { // Real
                         // Left Eigenvectors
-                        for (size_t i = 1; i <= static_cast<size_t>(N); ++i)
-                            es.eigvecs_lft(i, j) = complex_t{VL(i, j)};
+                        es.eigvecs_lft.set_col(j, cvec(VL.col(j)));
                     }
                     break;
 
                 case eigen::rvec:
-                    if (WI[j - 1] != 0. && j < static_cast<size_t>(N) &&
-                        WI[j - 1] == -WI[j]) {
+                    if (WI[j - 1] != 0. && j < UN && WI[j - 1] == -WI[j]) {
                         // Complex conjugate
 
                         // Next Eigenvalue
                         es.eigvals[j] = complex_t{WR[j], WI[j]};
 
                         // Right Eigenvectors
-                        for (size_t i = 1; i <= static_cast<size_t>(N); ++i) {
-                            es.eigvecs_rt(i, j) =
-                                complex_t{VR(i, j), VR(i, j + 1)};
-                            es.eigvecs_rt(i, j + 1) =
-                                complex_t{VR(i, j), -VR(i, j + 1)};
-                        }
+                        es.eigvecs_rt.set_col(j, cvec(VR.col(j), VR.col(j + 1)));
+                        es.eigvecs_rt.set_col(j + 1, cvec(VR.col(j), -VR.col(j + 1)));
 
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
                     } else { // Real
                         // Right Eigenvectors
-                        for (size_t i = 1; i <= static_cast<size_t>(N); ++i)
-                            es.eigvecs_rt(i, j) = complex_t{VR(i, j)};
+                        es.eigvecs_rt.set_col(j, cvec(VR.col(j)));
                     }
                     break;
                 }

@@ -78,7 +78,7 @@ using namespace tls::blat;
     auto v8 = randn<100>();
 }
 
-- (void)testCollinearVectors{
+- (void)testCollinearVectors {
     vec<9> v1 {1., 2., 3., 4., 5., 6., 7., 8., 9.};
     vec<9> v2 {2.*v1};
     
@@ -96,6 +96,16 @@ using namespace tls::blat;
     vec<4, complex_t> cv3 {{1., 2.}, {3., 0.}, {0., -1.}, {-5., 3.}};
     vec<4, complex_t> cv4 {{2., 4.}, {6., 0.}, {0., -2.}, {-10., 6.}};
     XCTAssert(collinear(cv3, cv4));
+}
+
+- (void)testVectorComparison {
+    vec<5> v1 {1, 2, 3, 4, 5};
+    vec<5> v2 {1. + EPS, 2, 3, 4, 5};
+    
+    XCTAssert (v1 == v1);
+    XCTAssert (v1 != v2);
+    
+    XCTAssert (close(v1, v2));
 }
 
 - (void)testIndexAssignmentComparison {
@@ -631,6 +641,7 @@ using namespace tls::blat;
 }
 
 - (void)testEigensystem {
+    // Case study: symmetric matrix
     mat<4, 4> m1 {
         {1, 2, 3, 4},
         {2, 2, 3, 4},
@@ -653,19 +664,14 @@ using namespace tls::blat;
         { 0.59654,  -0.454262, -0.245667, -0.614356}
     };
     
-    for (std::size_t j = 0; j < 4; ++j) {
-        // Eigenvalue
-        XCTAssert(std::fabs(es1.eigvals[j].real() - eval1(j + 1)) < 0.00001);
-        
-        // Eigenvector
-        double factor {0.};
-        if (std::fabs(evec1(1, j + 1)) > EPS)
-            factor = es1.eigvecs_rt(1, j + 1).real() / evec1(1, j + 1);
-
-        for (std::size_t i = 0; i < 4; ++i)
-            XCTAssert(std::fabs(es1.eigvecs_rt(i + 1, j + 1).real() - factor * evec1(i + 1, j + 1)) < 0.0001);
-    }
+    // Eigenvalues
+    XCTAssert(close(real(es1.eigvals), eval1, 0.00001));
     
+    // Eigenvectors
+    for (std::size_t j = 1; j < 5; ++j)
+        XCTAssert(close_collinear(real(es1.eigvecs_rt.col(j)), evec1.col(j), 0.0001));
+        
+    // Case study: asymmetric matrix
     mat<4, 4> m2 {
         {0, 2, 0, 1},
         {2, 2, 3, 2},
@@ -680,64 +686,30 @@ using namespace tls::blat;
         { -1.1786879464571869, 3.19870513679807},
         { -1.1786879464571869, -3.19870513679807}
     };
-    
-    mat<4, 4> r_evec2_re {
-        { 0.47184,    0.132877, -0.0806923, -0.0806923},
-        { 0.783851,   0.159705,   0.279715,   0.279715},
-        {-0.0145526,  0.188274,   0.422325,   0.422325},
-        { 0.403401,  -0.959891,   -0.71661,   -0.71661}
+
+    mat<4, 4, complex_t> r_evec2 {
+        {{ 0.47184,   0.}, { 0.132877, 0.}, {-0.0806923, 0.0788731},{-0.0806923, -0.0788731}},
+        {{ 0.783851,  0.}, { 0.159705, 0.}, { 0.279715, -0.175539}, {  0.279715,  0.175539}},
+        {{-0.0145526, 0.}, { 0.188274, 0.}, { 0.422325,  0.431654}, {  0.422325, -0.431654}},
+        {{ 0.403401,  0.}, {-0.959891, 0.}, {-0.71661,   0.0},      { -0.71661,   0.}}
     };
     
-    mat<4, 4> r_evec2_im {
-        {0.0, 0.0,  0.0788731, -0.0788731},
-        {0.0, 0.0, -0.175539,   0.175539},
-        {0.0, 0.0,  0.431654,  -0.431654},
-        {0.0, 0.0,  0.0,        0.}
+    mat<4, 4, complex_t> l_evec2 {
+        {{0.739463, 0.}, { 0.827813, 0.}, {-0.741732,  0.0},       {-0.741732,   0.0}},
+        {{0.622002, 0.}, {-0.309312, 0.}, { 0.458239, -0.0363744}, { 0.458239,   0.0363744}},
+        {{0.11783,  0.}, {-0.277047, 0.}, { 0.0224866, 0.479373},  { 0.0224866, -0.479373}},
+        {{0.228962, 0.}, {-0.377222, 0.}, {-0.0220256, 0.0879727}, {-0.0220256, -0.0879727}}
     };
 
-    mat<4, 4> l_evec2_re {
-        {0.739463,  0.827813, -0.741732,  -0.741732},
-        {0.622002, -0.309312,  0.458239,   0.458239},
-        {0.11783,  -0.277047,  0.0224866,  0.0224866},
-        {0.228962, -0.377222, -0.0220256, -0.0220256}
-    };
-    
-    mat<4, 4> l_evec2_im {
-        {0.0, 0.0,  0.0,        0.0},
-        {0.0, 0.0, -0.0363744,  0.0363744},
-        {0.0, 0.0,  0.479373,  -0.479373},
-        {0.0, 0.0,  0.0879727, -0.0879727}
-    };
-
-    for (std::size_t j = 0; j < 4; ++j) {
+    for (std::size_t j = 1; j < 5; ++j) {
         auto eval = es2.eigvals[j];
         
         // Eigenvalue
-        XCTAssert(std::fabs(eval.real() - eval2[j].real()) < 0.00001);
-        XCTAssert(std::fabs(eval.imag() - eval2[j].imag()) < 0.00001);
+        XCTAssert(std::abs(es2.eigvals(j) - eval2(j)) < 0.00001);
         
         // Eigenvectors
-        double factor {0.};
-        
-        // Right
-        if (std::fabs(r_evec2_re(1, j + 1)) > EPS)
-            factor = es2.eigvecs_rt(1, j + 1).real() / r_evec2_re(1, j + 1);
-
-        for (std::size_t i = 0; i < 4; ++i) {
-            auto evec = es2.eigvecs_rt.col(j + 1);
-            XCTAssert(std::fabs(evec(i + 1).real() - factor * r_evec2_re(i + 1, j + 1)) < 0.0001);
-            XCTAssert(std::fabs(evec(i + 1).imag() - factor * r_evec2_im(i + 1, j + 1)) < 0.0001);
-        }
-        
-        // Left
-        if (std::fabs(l_evec2_re(1, j + 1)) > EPS)
-            factor = es2.eigvecs_lft(1, j + 1).real() / l_evec2_re(1, j + 1);
-
-        for (std::size_t i = 0; i < 4; ++i) {
-            auto evec = es2.eigvecs_lft.col(j + 1);
-            XCTAssert(std::fabs(evec(i + 1).real() - factor * l_evec2_re(i + 1, j + 1)) < 0.0001);
-            XCTAssert(std::fabs(evec(i + 1).imag() - factor * l_evec2_im(i + 1, j + 1)) < 0.0001);
-        }
+        XCTAssert(close_collinear(es2.eigvecs_rt.col(j), r_evec2.col(j), 0.0001));
+        XCTAssert(close_collinear(es2.eigvecs_lft.col(j), l_evec2.col(j), 0.0001));
     }
 }
 
@@ -769,6 +741,18 @@ using namespace tls::blat;
     vec<4, complex_t> cv5 = conj(rv1);
     for (std::size_t i = 0; i < cv5.dim(); ++i)
         XCTAssert(cv5[i].real() == rv1[i] && cv5[i].imag() == 0.);
+    
+    double im[] = {5., 6., 7., 8.};
+    auto cv6 = cvec<4>(re, im);
+    for (std::size_t i = 0; i < cv6.dim(); ++i)
+        XCTAssert(cv6[i].real() == re[i] && cv6[i].imag() == im[i]);
+    
+    vec<4> iv1 {im};
+    auto cv7 = cvec<4>(rv1, iv1);
+    XCTAssert(cv7 == cv6);
+    
+    XCTAssert(real(cv7) == rv1);
+    XCTAssert(imag(cv7) == iv1);
 }
 
 - (void)testMatrixComplex {
@@ -830,6 +814,15 @@ using namespace tls::blat;
     for (std::size_t i = 1; i <= cm1.count_rows(); ++i)
         for (std::size_t j = 1; j <= cm1.count_cols(); ++j)
             XCTAssert(cm1(i, j).real() == rm1(i, j) && cm1(i, j).imag() == 0.);
+    
+    double re[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    double im[] = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    auto cm2 = cmat<2, 5>(re, im);
+    for (std::size_t i = 1; i <= cm2.count_rows(); ++i)
+        for (std::size_t j = 1; j <= cm2.count_cols(); ++j) {
+            auto c = complex_t{re[(i - 1) * 5 + (j - 1)], im[(i - 1) * 5 + (j - 1)]};
+            XCTAssert(cm2(i, j) == c);
+        }
 }
 
 - (void)testPerformanceMatrixMultiplication {
