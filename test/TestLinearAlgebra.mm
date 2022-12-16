@@ -579,7 +579,7 @@ using namespace tls::blat;
     
     for (std::size_t i = 1; i <= m3.count_rows(); ++i)
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
-            XCTAssert(std::fabs(m3(i, j) - (i == j ? 1. : 0.)) < TOLERANCE*1e2);
+            XCTAssert(std::fabs(m3(i, j) - (i == j ? 1. : 0.)) < TOL * 1e2);
 }
 
 - (void)testMatrixSingularValueDecomposition {
@@ -627,9 +627,9 @@ using namespace tls::blat;
         10.85333572722705,
         4.491569094526893
     };
-    XCTAssert(norm(SVD.S - singular_values) < TOLERANCE * 1e2);
-    XCTAssert(approx(SVD.U * transpose(SVD.U), identity<6>(), TOLERANCE * 1e1));
-    XCTAssert(approx(SVD.V * transpose(SVD.V), identity<4>(), TOLERANCE * 1e1));
+    XCTAssert(norm(SVD.S - singular_values) < TOL * 1e2);
+    XCTAssert(approx(SVD.U * transpose(SVD.U), identity<6>(), TOL * 1e1));
+    XCTAssert(approx(SVD.V * transpose(SVD.V), identity<4>(), TOL * 1e1));
 }
 
 - (void)testMatrixNorm {

@@ -53,7 +53,7 @@ using real_t    = doublereal;
 namespace tls::blat {
 
 // Constants
-const double TOLERANCE = 2.2204e-16;
+const double TOL = 2.2204e-16;
 const double EPS       = std::numeric_limits<double>::epsilon();
 
 const unsigned INF =
@@ -339,7 +339,7 @@ template <size_t DIM> double norm_inf(const vec<DIM>& v) {
  */
 template <size_t DIM> vec<DIM>& normalize(vec<DIM>& v, const unsigned p = 2) {
     double n = norm(v, p);
-    if (n > EPS)
+    if (n > TOL)
         v /= n;
     return v;
 }
@@ -440,7 +440,7 @@ vec<DIM> imag(const vec<DIM, complex_t>& v) {
  @brief Determines whether two vectors are close to each other
  */
 template <size_t DIM, typename T>
-bool close(const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = EPS) {
+bool close(const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = TOL) {
     auto diff = a - b;
     auto abs_square = [](const auto& v){ return std::abs(v * v); };
     
@@ -487,7 +487,7 @@ template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) {
 /**
  @brief Determines whether two real vectors have nearly the same direction
  */
-template <size_t DIM> bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = EPS) {
+template <size_t DIM> bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
     std::array<double, DIM> ratio{};
     std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
                    ratio.begin(), std::divides<>{});
@@ -554,7 +554,7 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b) {
  @brief Determines whether two compelx vectors have nearly the same direction
  */
 template <size_t DIM>
-bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, double tol = EPS) {
+bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, double tol = TOL) {
     std::array<complex_t, DIM> ratio{};
     std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
                    ratio.begin(), std::divides<>{});
@@ -964,6 +964,11 @@ template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
 mat<DIM_COLS, DIM_ROWS, T> transpose(const mat<DIM_ROWS, DIM_COLS, T>& m) {
     mat<DIM_COLS, DIM_ROWS, T> t{};
 
+    // Copy rows one by one (naive version)
+//    for (size_t j = 0; j < DIM_COLS; ++j)
+//        for (size_t i = 0; i < DIM_ROWS; ++i)
+//            t.elem()[i * DIM_COLS + j] = m.elem()[j * DIM_ROWS + i];
+    
     // The number of columns to copy simultaneously (to utilize cache)
     constexpr size_t job_size{16};
     const size_t     count_sets{DIM_COLS / job_size};
@@ -981,22 +986,6 @@ mat<DIM_COLS, DIM_ROWS, T> transpose(const mat<DIM_ROWS, DIM_COLS, T>& m) {
         for (size_t i = 0; i < DIM_ROWS; ++i)
             t.elem()[j + DIM_COLS * (count_sets * job_size + i)] =
                 m.elem()[(count_sets * job_size + j) * DIM_ROWS + i];
-
-    return t;
-}
-
-/**
- @brief Transposes a matrix
- */
-template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
-mat<DIM_COLS, DIM_ROWS, T>
-transpose_naive(const mat<DIM_ROWS, DIM_COLS, T>& m) {
-    mat<DIM_COLS, DIM_ROWS, T> t{};
-
-    // Copy rows one by one
-    for (size_t j = 0; j < DIM_COLS; ++j)
-        for (size_t i = 0; i < DIM_ROWS; ++i)
-            t.elem()[i * DIM_COLS + j] = m.elem()[j * DIM_ROWS + i];
 
     return t;
 }
@@ -1187,7 +1176,7 @@ vec<DIM_COLS, T> operator*(const vec<DIM_ROWS, T>&           v,
 template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
 bool approx(const mat<DIM_ROWS, DIM_COLS, T>& M1,
             const mat<DIM_ROWS, DIM_COLS, T>& M2,
-            const double                      tol = TOLERANCE) {
+            const double                      tol = TOL) {
     auto diff{M1 - M2};
     if (std::find_if(diff.elem().cbegin(), diff.elem().cend(),
                      [&tol](const auto& v) { return std::abs(v) > tol; }) ==
@@ -1289,7 +1278,7 @@ template <size_t DIM> mat<DIM, DIM> inv(const mat<DIM, DIM>& m) {
     for (size_t i = 0; i < DIM; ++i)
         d *= result.elem()[i * DIM + i];
 
-    if (std::abs(d) < EPS)
+    if (std::abs(d) < TOL)
         throw std::runtime_error{"The mat is singular."};
 
     n              = static_cast<integer_t>(DIM);
