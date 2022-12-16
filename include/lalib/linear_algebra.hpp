@@ -14,7 +14,6 @@
 #include <array>
 #include <cmath>
 #include <complex>
-#include <cstring>
 #include <exception>
 #include <functional>
 #include <initializer_list>
@@ -190,7 +189,6 @@ std::string to_string(const vec<DIM, T>& v, output_fmt fmt = output_fmt::nml) {
     std::stringstream strm{};
 
     int width = set_format(strm, fmt);
-
     auto print = [&strm, &width](const T& v) {
         strm.width(width);
         strm << v << ", ";
@@ -780,16 +778,12 @@ std::string to_string(const mat<DIM_ROWS, DIM_COLS, T>& M,
     std::stringstream strm{};
 
     int width = set_format(strm, fmt);
-
     for (size_t i = 0; i < DIM_ROWS; ++i) {
         strm << "[ ";
-
         for (size_t j = 0; j < DIM_COLS; ++j) {
             strm.width(width);
-
             strm << M.elem()[j * DIM_ROWS + i] << ", ";
         }
-
         strm << "]\n";
     }
 

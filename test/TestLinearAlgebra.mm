@@ -701,9 +701,7 @@ using namespace tls::blat;
         {{0.228962, 0.}, {-0.377222, 0.}, {-0.0220256, 0.0879727}, {-0.0220256, -0.0879727}}
     };
 
-    for (std::size_t j = 1; j < 5; ++j) {
-        auto eval = es2.eigvals[j];
-        
+    for (std::size_t j = 1; j < 5; ++j) {        
         // Eigenvalue
         XCTAssert(std::abs(es2.eigvals(j) - eval2(j)) < 0.00001);
         
