@@ -54,7 +54,7 @@ namespace tls::blat {
 
 // Constants
 const double TOL = 2.2204e-16;
-const double EPS       = std::numeric_limits<double>::epsilon();
+const double EPS = std::numeric_limits<double>::epsilon();
 
 const unsigned INF =
 #if defined(__linux__) || defined(__linux)
@@ -188,7 +188,7 @@ template <size_t DIM, typename T = double>
 std::string to_string(const vec<DIM, T>& v, output_fmt fmt = output_fmt::nml) {
     std::stringstream strm{};
 
-    int width = set_format(strm, fmt);
+    int  width = set_format(strm, fmt);
     auto print = [&strm, &width](const T& v) {
         strm.width(width);
         strm << v << ", ";
@@ -260,10 +260,10 @@ vec<DIM, complex_t> conj(const vec<DIM, T>& v) {
 template <size_t DIM>
 vec<DIM, complex_t> cvec(const double* re, const double* im) {
     std::array<complex_t, DIM> elm;
-    
+
     for (size_t i = 0; i < DIM; ++i)
         elm[i] = complex_t{re[i], im[i]};
-    
+
     return vec<DIM, complex_t>{std::move(elm)};
 }
 
@@ -273,25 +273,24 @@ vec<DIM, complex_t> cvec(const double* re, const double* im) {
 template <size_t DIM>
 vec<DIM, complex_t> cvec(const vec<DIM>& re, const vec<DIM>& im) {
     std::array<complex_t, DIM> elm;
-    
+
     for (size_t i = 0; i < DIM; ++i)
         elm[i] = complex_t{re.elem()[i], im.elem()[i]};
-    
+
     return vec<DIM, complex_t>{std::move(elm)};
 }
 
 /**
  @brief Creates a new complex vector from a real vector
- 
+
  @details The imaginary parts are all set to 0.
  */
-template <size_t DIM>
-vec<DIM, complex_t> cvec(const vec<DIM>& re) {
+template <size_t DIM> vec<DIM, complex_t> cvec(const vec<DIM>& re) {
     std::array<complex_t, DIM> elm;
-    
+
     for (size_t i = 0; i < DIM; ++i)
         elm[i] = complex_t{re.elem()[i], 0.};
-    
+
     return vec<DIM, complex_t>{std::move(elm)};
 }
 
@@ -413,26 +412,24 @@ vec<DIM, T> operator/(const vec<DIM, T>& a, const double s) {
 /**
  @brief Extracts real part of a complex vector as a new real vector
  */
-template <size_t DIM>
-vec<DIM> real(const vec<DIM, complex_t>& v) {
-    std::array<double, DIM> elm {};
-    
-    auto re = [](const complex_t& c){ return c.real(); };
+template <size_t DIM> vec<DIM> real(const vec<DIM, complex_t>& v) {
+    std::array<double, DIM> elm{};
+
+    auto re = [](const complex_t& c) { return c.real(); };
     std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), re);
-    
+
     return vec<DIM>{std::move(elm)};
 }
 
 /**
  @brief Extracts imaginary part of a complex vector as a new real vector
  */
-template <size_t DIM>
-vec<DIM> imag(const vec<DIM, complex_t>& v) {
-    std::array<double, DIM> elm {};
-    
-    auto im = [](const complex_t& c){ return c.imag(); };
+template <size_t DIM> vec<DIM> imag(const vec<DIM, complex_t>& v) {
+    std::array<double, DIM> elm{};
+
+    auto im = [](const complex_t& c) { return c.imag(); };
     std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), im);
-    
+
     return vec<DIM>{std::move(elm)};
 }
 
@@ -441,13 +438,14 @@ vec<DIM> imag(const vec<DIM, complex_t>& v) {
  */
 template <size_t DIM, typename T>
 bool close(const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = TOL) {
-    auto diff = a - b;
-    auto abs_square = [](const auto& v){ return std::abs(v * v); };
-    
-    std::transform(diff.elem().cbegin(), diff.elem().cend(), diff.elem().begin(), abs_square);
+    auto diff       = a - b;
+    auto abs_square = [](const auto& v) { return std::abs(v * v); };
+
+    std::transform(diff.elem().cbegin(), diff.elem().cend(),
+                   diff.elem().begin(), abs_square);
     double sum = std::accumulate(diff.elem().cbegin(), diff.elem().cend(), 0.);
-    
-    if (std::sqrt(sum/static_cast<double>(DIM)) < tol)
+
+    if (std::sqrt(sum / static_cast<double>(DIM)) < tol)
         return true;
     else
         return false;
@@ -487,7 +485,8 @@ template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) {
 /**
  @brief Determines whether two real vectors have nearly the same direction
  */
-template <size_t DIM> bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
+template <size_t DIM>
+bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
     std::array<double, DIM> ratio{};
     std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
                    ratio.begin(), std::divides<>{});
@@ -514,7 +513,6 @@ template <size_t DIM> bool close_collinear(const vec<DIM>& a, const vec<DIM>& b,
 
     return false;
 }
-
 
 /**
  @brief Determines whether two compelx vectors have the same direction
@@ -554,7 +552,8 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b) {
  @brief Determines whether two compelx vectors have nearly the same direction
  */
 template <size_t DIM>
-bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, double tol = TOL) {
+bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b,
+                     double tol = TOL) {
     std::array<complex_t, DIM> ratio{};
     std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
                    ratio.begin(), std::divides<>{});
@@ -569,7 +568,7 @@ bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b,
     // But, to ignore 'nan' which is the result of 0./0., we need a special
     // predicate.
     auto nan_skipping_not_equal_to = [&tol](const complex_t& a,
-                                        const complex_t& b) {
+                                            const complex_t& b) {
         if ((isnan(a.real()) && isnan(b.real())) ||
             (isnan(a.imag()) && isnan(b.imag())))
             return false;
@@ -795,11 +794,11 @@ std::string to_string(const mat<DIM_ROWS, DIM_COLS, T>& M,
  */
 template <size_t DIM_ROWS, size_t DIM_COLS>
 mat<DIM_ROWS, DIM_COLS> real(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
-    std::array<double, DIM_ROWS * DIM_COLS> elm {};
-    
-    auto re = [](const complex_t& c){ return c.real(); };
+    std::array<double, DIM_ROWS * DIM_COLS> elm{};
+
+    auto re = [](const complex_t& c) { return c.real(); };
     std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), re);
-    
+
     return mat<DIM_ROWS, DIM_COLS>{std::move(elm)};
 }
 
@@ -808,11 +807,11 @@ mat<DIM_ROWS, DIM_COLS> real(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
  */
 template <size_t DIM_ROWS, size_t DIM_COLS>
 mat<DIM_ROWS, DIM_COLS> imag(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
-    std::array<double, DIM_ROWS * DIM_COLS> elm {};
-    
-    auto im = [](const complex_t& c){ return c.imag(); };
+    std::array<double, DIM_ROWS * DIM_COLS> elm{};
+
+    auto im = [](const complex_t& c) { return c.imag(); };
     std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), im);
-    
+
     return mat<DIM_ROWS, DIM_COLS>{std::move(elm)};
 }
 
@@ -943,14 +942,14 @@ mat<DIM_ROWS, DIM_COLS, complex_t> conj(const mat<DIM_ROWS, DIM_COLS, T>& M) {
 template <size_t DIM_ROWS, size_t DIM_COLS>
 mat<DIM_ROWS, DIM_COLS, complex_t> cmat(const double* re, const double* im) {
     std::array<complex_t, DIM_ROWS * DIM_COLS> elm;
-    
+
     size_t idx{0};
     for (size_t i = 0; i < DIM_ROWS; ++i)
         for (size_t j = 0; j < DIM_COLS; ++j) {
             elm[j * DIM_ROWS + i] = complex_t{re[idx], im[idx]};
             idx++;
         }
-    
+
     return mat<DIM_ROWS, DIM_COLS, complex_t>{std::move(elm)};
 }
 
@@ -965,10 +964,10 @@ mat<DIM_COLS, DIM_ROWS, T> transpose(const mat<DIM_ROWS, DIM_COLS, T>& m) {
     mat<DIM_COLS, DIM_ROWS, T> t{};
 
     // Copy rows one by one (naive version)
-//    for (size_t j = 0; j < DIM_COLS; ++j)
-//        for (size_t i = 0; i < DIM_ROWS; ++i)
-//            t.elem()[i * DIM_COLS + j] = m.elem()[j * DIM_ROWS + i];
-    
+    //    for (size_t j = 0; j < DIM_COLS; ++j)
+    //        for (size_t i = 0; i < DIM_ROWS; ++i)
+    //            t.elem()[i * DIM_COLS + j] = m.elem()[j * DIM_ROWS + i];
+
     // The number of columns to copy simultaneously (to utilize cache)
     constexpr size_t job_size{16};
     const size_t     count_sets{DIM_COLS / job_size};
@@ -1175,8 +1174,7 @@ vec<DIM_COLS, T> operator*(const vec<DIM_ROWS, T>&           v,
  */
 template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
 bool approx(const mat<DIM_ROWS, DIM_COLS, T>& M1,
-            const mat<DIM_ROWS, DIM_COLS, T>& M2,
-            const double                      tol = TOL) {
+            const mat<DIM_ROWS, DIM_COLS, T>& M2, const double tol = TOL) {
     auto diff{M1 - M2};
     if (std::find_if(diff.elem().cbegin(), diff.elem().cend(),
                      [&tol](const auto& v) { return std::abs(v) > tol; }) ==
@@ -1439,7 +1437,7 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
         integer_t     LDVR{N};
         mat<DIM, DIM> VL{};
         mat<DIM, DIM> VR{};
-        size_t UN{static_cast<size_t>(N)};
+        size_t        UN{static_cast<size_t>(N)};
 
         switch (js) {
         case eigen::val: JOBVL = JOBVR = 'N'; break;
@@ -1479,12 +1477,16 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
                         es.eigvals[j] = complex_t{WR[j], WI[j]};
 
                         // Right Eigenvectors
-                        es.eigvecs_rt.set_col(j, cvec(VR.col(j), VR.col(j + 1)));
-                        es.eigvecs_rt.set_col(j + 1, cvec(VR.col(j), -VR.col(j + 1)));
+                        es.eigvecs_rt.set_col(j,
+                                              cvec(VR.col(j), VR.col(j + 1)));
+                        es.eigvecs_rt.set_col(j + 1,
+                                              cvec(VR.col(j), -VR.col(j + 1)));
 
                         // Left Eigenvectors
-                        es.eigvecs_lft.set_col(j, cvec(VL.col(j), VL.col(j + 1)));
-                        es.eigvecs_lft.set_col(j + 1, cvec(VL.col(j), -VL.col(j + 1)));
+                        es.eigvecs_lft.set_col(j,
+                                               cvec(VL.col(j), VL.col(j + 1)));
+                        es.eigvecs_lft.set_col(j + 1,
+                                               cvec(VL.col(j), -VL.col(j + 1)));
 
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
@@ -1505,9 +1507,11 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
                         es.eigvals[j] = complex_t{WR[j], WI[j]};
 
                         // Left Eigenvectors
-                        es.eigvecs_lft.set_col(j, cvec(VL.col(j), VL.col(j + 1)));
-                        es.eigvecs_lft.set_col(j + 1, cvec(VL.col(j), -VL.col(j + 1)));
-                        
+                        es.eigvecs_lft.set_col(j,
+                                               cvec(VL.col(j), VL.col(j + 1)));
+                        es.eigvecs_lft.set_col(j + 1,
+                                               cvec(VL.col(j), -VL.col(j + 1)));
+
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
                     } else { // Real
@@ -1524,8 +1528,10 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
                         es.eigvals[j] = complex_t{WR[j], WI[j]};
 
                         // Right Eigenvectors
-                        es.eigvecs_rt.set_col(j, cvec(VR.col(j), VR.col(j + 1)));
-                        es.eigvecs_rt.set_col(j + 1, cvec(VR.col(j), -VR.col(j + 1)));
+                        es.eigvecs_rt.set_col(j,
+                                              cvec(VR.col(j), VR.col(j + 1)));
+                        es.eigvecs_rt.set_col(j + 1,
+                                              cvec(VR.col(j), -VR.col(j + 1)));
 
                         // Skip the next Eigenvalue & Eigenvectors
                         j++;
