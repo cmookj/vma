@@ -141,9 +141,12 @@ public:
     using iterator = T*;
     T* begin() { return &_elem[0]; }
     T* end() { return &_elem[0] + DIM; }
-    const T* cbegin() const { return &_elem[0]; }
-    const T* cend() const { return &_elem[0] + DIM; }
+    constexpr const T* cbegin() const noexcept { return &_elem[0]; }
+    constexpr const T* cend() const noexcept { return &_elem[0] + DIM; }
 
+    constexpr T* data() noexcept { return &_elem[0]; }
+    constexpr const T* data() const noexcept { return &_elem[0]; }
+    
     // Subscript operators
     T& operator[](const size_t n) {
         return const_cast<T&>(static_cast<const vec&>(*this)[n]);
@@ -163,13 +166,13 @@ public:
 
     // Binary arithmetic operators
     vec& operator+=(const vec& rhs) {
-        std::transform(_elem.cbegin(), _elem.cend(), rhs._elem.cbegin(),
+        std::transform(_elem.cbegin(), _elem.cend(), rhs.cbegin(),
                        _elem.begin(), std::plus<>{});
         return *this;
     }
 
     vec& operator-=(const vec& rhs) {
-        std::transform(_elem.cbegin(), _elem.cend(), rhs._elem.cbegin(),
+        std::transform(_elem.cbegin(), _elem.cend(), rhs.cbegin(),
                        _elem.begin(), std::minus<>{});
         return *this;
     }
@@ -601,7 +604,9 @@ bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b,
  */
 template <size_t DIM_ROWS, size_t DIM_COLS, typename T = double> class mat {
 protected:
-    std::array<T, DIM_ROWS * DIM_COLS> _elem;
+    static constexpr size_t SZ = DIM_ROWS * DIM_COLS;
+    std::array<T, SZ> _elem;
+    
 
 public:
     // Default constructor and destructor
@@ -617,7 +622,7 @@ public:
     mat& operator=(mat&&) noexcept = default;
 
     // Other constructors
-    mat(std::array<T, DIM_ROWS * DIM_COLS>&& elm) : _elem{std::move(elm)} {}
+    mat(std::array<T, SZ>&& elm) : _elem{std::move(elm)} {}
 
     mat(const T v) {
         std::for_each(_elem.begin(), _elem.end(), [&v](T& e) { e = v; });
@@ -643,8 +648,8 @@ public:
     mat(const std::initializer_list<std::initializer_list<T>>& il) {
         size_t                              idx{0};
         size_t                              i{0};
-        size_t                              count{DIM_ROWS * DIM_COLS};
-        std::array<T, DIM_ROWS * DIM_COLS>& elm{_elem};
+        size_t                              count{SZ};
+        std::array<T, SZ>& elm{_elem};
 
         auto extract_row = [&i, &idx, &count,
                             &elm](const std::initializer_list<T>& row) {
@@ -659,15 +664,18 @@ public:
     }
 
     // Access methods
-    std::array<T, DIM_ROWS * DIM_COLS>&       elem() { return _elem; }
-    const std::array<T, DIM_ROWS * DIM_COLS>& elem() const { return _elem; }
+    std::array<T, SZ>&       elem() { return _elem; }
+    const std::array<T, SZ>& elem() const { return _elem; }
     
     using iterator = T*;
     T* begin() { return &_elem[0]; }
-    T* end() { return &_elem[0] + DIM_ROWS * DIM_COLS; }
-    const T* cbegin() const { return &_elem[0]; }
-    const T* cend() const { return &_elem[0] + DIM_ROWS * DIM_COLS; }
+    T* end() { return &_elem[0] + SZ; }
+    constexpr const T* cbegin() const noexcept { return &_elem[0]; }
+    constexpr const T* cend() const noexcept { return &_elem[0] + SZ; }
 
+    constexpr T* data() noexcept { return &_elem[0]; }
+    constexpr const T* data() const noexcept { return &_elem[0]; }
+    
     /**
      @brief Index operator
 
@@ -732,7 +740,7 @@ public:
 
     // Binary arithmetic operators
     mat& operator+=(const mat& rhs) {
-        std::transform(_elem.cbegin(), _elem.cend(), rhs._elem.cbegin(),
+        std::transform(_elem.cbegin(), _elem.cend(), rhs.cbegin(),
                        _elem.begin(), std::plus<>{});
         return *this;
     }
@@ -744,7 +752,7 @@ public:
     }
 
     mat& operator-=(const mat& rhs) {
-        std::transform(_elem.cbegin(), _elem.cend(), rhs._elem.cbegin(),
+        std::transform(_elem.cbegin(), _elem.cend(), rhs.cbegin(),
                        _elem.begin(), std::minus<>{});
         return *this;
     }
@@ -763,16 +771,16 @@ public:
 
     // Matrix multiplication
     mat& operator*=(const mat<DIM_COLS, DIM_COLS, T>& m) {
-        std::array<T, DIM_COLS * DIM_ROWS> elm;
+        std::array<T, SZ> elm;
 
         if constexpr (std::is_same_v<T, double>)
             cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
                         DIM_COLS, DIM_COLS, 1., _elem.data(), DIM_ROWS,
-                        m.elem().data(), DIM_COLS, 0., elm.data(), DIM_ROWS);
+                        m.data(), DIM_COLS, 0., elm.data(), DIM_ROWS);
         else if constexpr (std::is_same_v<T, complex_t>)
             cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
                         DIM_COLS, DIM_COLS, 1., _elem.data(), DIM_ROWS,
-                        m.elem().data(), DIM_COLS, 0., elm.data(), DIM_ROWS);
+                        m.data(), DIM_COLS, 0., elm.data(), DIM_ROWS);
 
         _elem = std::move(elm);
         return *this;
@@ -1117,14 +1125,14 @@ mat<DIM_ROWS, DIM_COLS, T> operator*(const mat<DIM_ROWS, DIM, T>& m1,
 
     if constexpr (std::is_same_v<T, double>)
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
-                    DIM_COLS, DIM, 1, m1.elem().data(), DIM_ROWS,
-                    m2.elem().data(), DIM, 0., elm.data(), DIM_ROWS);
+                    DIM_COLS, DIM, 1, m1.data(), DIM_ROWS,
+                    m2.data(), DIM, 0., elm.data(), DIM_ROWS);
     else if constexpr (std::is_same_v<T, complex_t>) {
         double alpha{1.0};
         double beta{0.};
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
-                    DIM_COLS, DIM, &alpha, m1.elem().data(), DIM_ROWS,
-                    m2.elem().data(), DIM, &beta, elm.data(), DIM_ROWS);
+                    DIM_COLS, DIM, &alpha, m1.data(), DIM_ROWS,
+                    m2.data(), DIM, &beta, elm.data(), DIM_ROWS);
     }
 
     return mat<DIM_ROWS, DIM_COLS, T>{std::move(elm)};
@@ -1140,15 +1148,15 @@ vec<DIM_COLS, T> operator*(const mat<DIM_ROWS, DIM_COLS, T>& m,
 
     if constexpr (std::is_same_v<T, double>)
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS, 1,
-                    DIM_COLS, 1, m.elem().data(), DIM_ROWS, v.elem().data(),
+                    DIM_COLS, 1, m.data(), DIM_ROWS, v.data(),
                     DIM_COLS, 0., elm.data(), DIM_COLS);
 
     else if constexpr (std::is_same_v<T, complex_t>) {
         double alpha{1.0};
         double beta{0.};
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS, 1,
-                    DIM_COLS, &alpha, m.elem().data(), DIM_ROWS,
-                    v.elem().data(), DIM_COLS, &beta, elm.data(), DIM_COLS);
+                    DIM_COLS, &alpha, m.data(), DIM_ROWS,
+                    v.data(), DIM_COLS, &beta, elm.data(), DIM_COLS);
     }
 
     return vec<DIM_COLS, T>{std::move(elm)};
@@ -1167,13 +1175,13 @@ vec<DIM_COLS, T> operator*(const vec<DIM_ROWS, T>&           v,
 
     if constexpr (std::is_same_v<T, double>)
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 1, DIM_ROWS,
-                    DIM_COLS, 1, v.elem().data(), 1, m.elem().data(), DIM_ROWS,
+                    DIM_COLS, 1, v.data(), 1, m.data(), DIM_ROWS,
                     0., elm.data(), 1);
     else if constexpr (std::is_same_v<T, complex_t>) {
         double alpha{1.0};
         double beta{0.};
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 1, DIM_ROWS,
-                    DIM_COLS, &alpha, v.elem().data(), 1, m.elem().data(),
+                    DIM_COLS, &alpha, v.data(), 1, m.data(),
                     DIM_ROWS, &beta, elm.data(), 1);
     }
 
@@ -1246,7 +1254,7 @@ template <size_t DIM, typename T> T tr(const mat<DIM, DIM, T>& M) {
  */
 template <size_t DIM> double det(const mat<DIM, DIM>& M) {
     auto LU = std::make_unique<real_t[]>(DIM * DIM);
-    std::memcpy(LU.get(), M.elem().data(), sizeof(real_t) * DIM * DIM);
+    std::memcpy(LU.get(), M.data(), sizeof(real_t) * DIM * DIM);
 
     integer_t N{static_cast<integer_t>(DIM)};
     integer_t INFO;
@@ -1282,7 +1290,7 @@ template <size_t DIM> mat<DIM, DIM> inv(const mat<DIM, DIM>& m) {
 
     auto IPIV = std::make_unique<integer_t[]>(DIM);
 
-    dgetrf_(&n, &n, result.elem().data(), &n, IPIV.get(), &INFO);
+    dgetrf_(&n, &n, result.data(), &n, IPIV.get(), &INFO);
 
     double d = 1.;
     for (size_t i = 0; i < DIM; ++i)
@@ -1295,7 +1303,7 @@ template <size_t DIM> mat<DIM, DIM> inv(const mat<DIM, DIM>& m) {
     integer_t prod = static_cast<integer_t>(DIM * DIM);
     auto      WORK = std::make_unique<real_t[]>(DIM);
 
-    dgetri_(&n, result.elem().data(), &n, IPIV.get(), WORK.get(), &prod, &INFO);
+    dgetri_(&n, result.data(), &n, IPIV.get(), WORK.get(), &prod, &INFO);
 
     return result;
 }
@@ -1359,7 +1367,7 @@ svd_t<DIM_ROWS, DIM_COLS> svd(const mat<DIM_ROWS, DIM_COLS>& M) {
                  5 * std::min(m, n) * std::min(m, n) + 4 * std::min(m, n));
 
     auto el = std::make_unique<real_t[]>(DIM_ROWS * DIM_COLS);
-    std::memcpy(el.get(), M.elem().data(),
+    std::memcpy(el.get(), M.data(),
                 sizeof(real_t) * DIM_ROWS * DIM_COLS);
 
     auto      s     = std::make_unique<real_t[]>(ds);
@@ -1432,7 +1440,7 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
         integer_t LWORK{3 * N};
         auto      WORK = std::make_unique<real_t[]>(LWORK);
 
-        dsyev_(&JOBZ, &UPLO, &N, A.elem().data(), &LDA, W.get(), WORK.get(),
+        dsyev_(&JOBZ, &UPLO, &N, A.data(), &LDA, W.get(), WORK.get(),
                &LWORK, &INFO);
 
         if (INFO == 0) {
@@ -1440,7 +1448,7 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
 
             if (js != eigen::val)
                 es.eigvecs_rt =
-                    mat<DIM, DIM, complex_t>{std::move(A.elem().data())};
+                    mat<DIM, DIM, complex_t>{std::move(A.data())};
         } else
             throw std::runtime_error{"Failed to calculate eigenvalues."};
     } else {
@@ -1469,8 +1477,8 @@ eigensystem<DIM> eigen(const mat<DIM, DIM>& M, eigen js = eigen::val) {
         integer_t LWORK{4 * N};
         auto      WORK = std::make_unique<double[]>(LWORK);
 
-        dgeev_(&JOBVL, &JOBVR, &N, A.elem().data(), &LDA, WR.get(), WI.get(),
-               VL.elem().data(), &LDVL, VR.elem().data(), &LDVR, WORK.get(),
+        dgeev_(&JOBVL, &JOBVR, &N, A.data(), &LDA, WR.get(), WI.get(),
+               VL.data(), &LDVL, VR.data(), &LDVR, WORK.get(),
                &LWORK, &INFO);
 
         if (INFO == 0) {
