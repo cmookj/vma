@@ -137,6 +137,12 @@ public:
     // Access methods
     std::array<T, DIM>&       elem() { return _elem; }
     const std::array<T, DIM>& elem() const { return _elem; }
+    
+    using iterator = T*;
+    T* begin() { return &_elem[0]; }
+    T* end() { return &_elem[0] + DIM; }
+    const T* cbegin() const { return &_elem[0]; }
+    const T* cend() const { return &_elem[0] + DIM; }
 
     // Subscript operators
     T& operator[](const size_t n) {
@@ -195,7 +201,7 @@ std::string to_string(const vec<DIM, T>& v, output_fmt fmt = output_fmt::nml) {
     };
 
     strm << "[ ";
-    std::for_each(v.elem().cbegin(), v.elem().cend(), print);
+    std::for_each(v.cbegin(), v.cend(), print);
     strm << "]";
 
     return strm.str();
@@ -247,7 +253,7 @@ vec<DIM, complex_t> conj(const vec<DIM, T>& v) {
     std::array<complex_t, DIM> elm;
 
     auto conj = [](const auto& c) { return std::conj(c); };
-    std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), conj);
+    std::transform(v.cbegin(), v.cend(), elm.begin(), conj);
 
     return vec<DIM, complex_t>{std::move(elm)};
 }
@@ -301,8 +307,7 @@ template <size_t DIM> vec<DIM, complex_t> cvec(const vec<DIM>& re) {
  @brief Calculates inner product of two vectors
  */
 template <size_t DIM> double inner(const vec<DIM>& a, const vec<DIM>& b) {
-    return std::transform_reduce(a.elem().cbegin(), a.elem().cend(),
-                                 b.elem().cbegin(), 0.);
+    return std::transform_reduce(a.cbegin(), a.cend(), b.cbegin(), 0.);
 }
 
 /**
@@ -316,8 +321,8 @@ template <size_t DIM> double norm(const vec<DIM>& v, const unsigned p = 2) {
         return a + std::pow(std::abs(b), double(p));
     };
     return std::pow(
-        std::accumulate(v.elem().cbegin(), v.elem().cend(), 0., powered_fold),
-        1. / double(p));
+        std::accumulate(v.cbegin(), v.cend(), 0., powered_fold), 1. / double(p));
+
 }
 
 /**
@@ -328,8 +333,9 @@ template <size_t DIM> double norm(const vec<DIM>& v, const unsigned p = 2) {
  */
 template <size_t DIM> double norm_inf(const vec<DIM>& v) {
     auto index = std::max_element(
-        v.elem().begin(), v.elem().end(),
+        v.cbegin(), v.cend(),
         [](double a, double b) { return std::abs(a) < std::abs(b); });
+
     return *index;
 }
 
@@ -416,7 +422,7 @@ template <size_t DIM> vec<DIM> real(const vec<DIM, complex_t>& v) {
     std::array<double, DIM> elm{};
 
     auto re = [](const complex_t& c) { return c.real(); };
-    std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), re);
+    std::transform(v.cbegin(), v.cend(), elm.begin(), re);
 
     return vec<DIM>{std::move(elm)};
 }
@@ -428,7 +434,7 @@ template <size_t DIM> vec<DIM> imag(const vec<DIM, complex_t>& v) {
     std::array<double, DIM> elm{};
 
     auto im = [](const complex_t& c) { return c.imag(); };
-    std::transform(v.elem().cbegin(), v.elem().cend(), elm.begin(), im);
+    std::transform(v.cbegin(), v.cend(), elm.begin(), im);
 
     return vec<DIM>{std::move(elm)};
 }
@@ -441,9 +447,8 @@ bool close(const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = TOL) {
     auto diff       = a - b;
     auto abs_square = [](const auto& v) { return std::abs(v * v); };
 
-    std::transform(diff.elem().cbegin(), diff.elem().cend(),
-                   diff.elem().begin(), abs_square);
-    double sum = std::accumulate(diff.elem().cbegin(), diff.elem().cend(), 0.);
+    std::transform(diff.cbegin(), diff.cend(), diff.begin(), abs_square);
+    double sum = std::accumulate(diff.cbegin(), diff.cend(), 0.);
 
     if (std::sqrt(sum / static_cast<double>(DIM)) < tol)
         return true;
@@ -456,8 +461,8 @@ bool close(const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = TOL) {
  */
 template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) {
     std::array<double, DIM> ratio{};
-    std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
-                   ratio.begin(), std::divides<>{});
+    std::transform(a.cbegin(), a.cend(), b.cbegin(), ratio.begin(), std::divides<>{});
+
 
     // Originally, the following expression in if statement should be either
     //   if (std::adjacent_find(ratio.begin(), ratio.end(),
@@ -488,8 +493,8 @@ template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) {
 template <size_t DIM>
 bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
     std::array<double, DIM> ratio{};
-    std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
-                   ratio.begin(), std::divides<>{});
+    std::transform(a.cbegin(), a.cend(), b.cbegin(), ratio.begin(), std::divides<>{});
+
 
     // Originally, the following expression in if statement should be either
     //   if (std::adjacent_find(ratio.begin(), ratio.end(),
@@ -520,8 +525,8 @@ bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
 template <size_t DIM>
 bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b) {
     std::array<complex_t, DIM> ratio{};
-    std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
-                   ratio.begin(), std::divides<>{});
+    std::transform(a.cbegin(), a.cend(), b.cbegin(), ratio.begin(), std::divides<>{});
+
 
     // Originally, the following expression in if statement should be either
     //   if (std::adjacent_find(ratio.begin(), ratio.end(),
@@ -555,8 +560,8 @@ template <size_t DIM>
 bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b,
                      double tol = TOL) {
     std::array<complex_t, DIM> ratio{};
-    std::transform(a.elem().cbegin(), a.elem().cend(), b.elem().cbegin(),
-                   ratio.begin(), std::divides<>{});
+    std::transform(a.cbegin(), a.cend(), b.cbegin(), ratio.begin(), std::divides<>{});
+
 
     // Originally, the following expression in if statement should be either
     //   if (std::adjacent_find(ratio.begin(), ratio.end(),
@@ -656,6 +661,12 @@ public:
     // Access methods
     std::array<T, DIM_ROWS * DIM_COLS>&       elem() { return _elem; }
     const std::array<T, DIM_ROWS * DIM_COLS>& elem() const { return _elem; }
+    
+    using iterator = T*;
+    T* begin() { return &_elem[0]; }
+    T* end() { return &_elem[0] + DIM_ROWS * DIM_COLS; }
+    const T* cbegin() const { return &_elem[0]; }
+    const T* cend() const { return &_elem[0] + DIM_ROWS * DIM_COLS; }
 
     /**
      @brief Index operator
@@ -797,7 +808,7 @@ mat<DIM_ROWS, DIM_COLS> real(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
     std::array<double, DIM_ROWS * DIM_COLS> elm{};
 
     auto re = [](const complex_t& c) { return c.real(); };
-    std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), re);
+    std::transform(M.cbegin(), M.cend(), elm.begin(), re);
 
     return mat<DIM_ROWS, DIM_COLS>{std::move(elm)};
 }
@@ -810,7 +821,7 @@ mat<DIM_ROWS, DIM_COLS> imag(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
     std::array<double, DIM_ROWS * DIM_COLS> elm{};
 
     auto im = [](const complex_t& c) { return c.imag(); };
-    std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), im);
+    std::transform(M.cbegin(), M.cend(), elm.begin(), im);
 
     return mat<DIM_ROWS, DIM_COLS>{std::move(elm)};
 }
@@ -929,7 +940,7 @@ mat<DIM_ROWS, DIM_COLS, complex_t> conj(const mat<DIM_ROWS, DIM_COLS, T>& M) {
     std::array<complex_t, DIM_ROWS * DIM_COLS> elm;
 
     auto conj = [](const auto& c) { return std::conj(c); };
-    std::transform(M.elem().cbegin(), M.elem().cend(), elm.begin(), conj);
+    std::transform(M.cbegin(), M.cend(), elm.begin(), conj);
 
     return mat<DIM_ROWS, DIM_COLS, complex_t>{std::move(elm)};
 }
@@ -1176,7 +1187,8 @@ template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
 bool approx(const mat<DIM_ROWS, DIM_COLS, T>& M1,
             const mat<DIM_ROWS, DIM_COLS, T>& M2, const double tol = TOL) {
     auto diff{M1 - M2};
-    if (std::find_if(diff.elem().cbegin(), diff.elem().cend(),
+
+    if (std::find_if(diff.cbegin(), diff.cend(),
                      [&tol](const auto& v) { return std::abs(v) > tol; }) ==
         std::end(diff.elem()))
         return true;

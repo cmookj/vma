@@ -13,10 +13,9 @@ using namespace tls::blat;
 
 @interface TestLinearAlgebra : XCTestCase
 {
-    mat<256, 256> mm0;
-    
-    mat<1024, 256> mm1;
-    mat<256, 256> mm2;
+    mat<512, 512> mm0;
+    mat<512, 512> mm1;
+    mat<512, 512> mm2;
 }
 @end
 
@@ -41,10 +40,16 @@ using namespace tls::blat;
     // Put teardown code here. This method is called after the invocation of each test method in the class.
 }
 
-- (void)testVectorCreation {
+- (void)testVectorCreationAccess {
     vec<5> v1;
     for (std::size_t i = 1; i <= v1.dim(); ++i)
         XCTAssert(v1(i) == 0.);
+
+    for (auto e = v1.begin(); e < v1.end(); ++e)
+        XCTAssert(*e == 0.);
+    
+    for (const auto& elem : v1)
+        XCTAssert(elem == 0.);
     
     vec<5> v2{1.};
     for (std::size_t i = 1; i <= v2.dim(); ++i)
@@ -225,6 +230,12 @@ using namespace tls::blat;
     for (std::size_t i = 1; i <= m0.count_rows(); ++i )
         for (std::size_t j = 1; j <= m0.count_cols(); ++j)
             XCTAssert(m0(i, j) == 0. );
+    
+    for (auto e = m0.begin(); e < m0.end(); ++e)
+        XCTAssert(*e == 0.);
+    
+    for (const auto& elem : m0)
+        XCTAssert(elem == 0.);
     
     mat<3, 4> m1 {{1, 2, 3, 4}, {2., 3., 4., 5.}, {3, 4, 5., 6}};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i )
