@@ -14,6 +14,7 @@
 #include <array>
 #include <cmath>
 #include <complex>
+#include <cstring> // for memcpy
 #include <exception>
 #include <functional>
 #include <initializer_list>
@@ -34,8 +35,10 @@ using real_t    = __CLPK_doublereal;
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-#include "clapack.h"
 #include "f2c.h"
+#include "cblas.h"
+#include "clapack.h"
+#undef abs
 
 #include <cstdint>
 #include <ctime>
@@ -44,8 +47,13 @@ using real_t    = doublereal;
 #endif
 
 #if defined(__linux) || defined(__linux__)
-#include "clapack.h"
 #include "f2c.h"
+#include "cblas.h"
+#include "clapack.h"
+#undef abs
+#undef min 
+#undef max
+
 using integer_t = integer;
 using real_t    = doublereal;
 #endif
@@ -476,7 +484,7 @@ template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b) {
     // But, to ignore 'nan' which is the result of 0./0., we need a special
     // predicate.
     auto nan_skipping_not_equal_to = [](const double& a, const double& b) {
-        if (isnan(a) || isnan(b))
+        if (std::isnan(a) || std::isnan(b))
             return false;
         else
             return a != b;
@@ -508,7 +516,7 @@ bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
     // But, to ignore 'nan' which is the result of 0./0., we need a special
     // predicate.
     auto nan_skipping_not_equal_to = [&tol](const double& a, const double& b) {
-        if (isnan(a) || isnan(b))
+        if (std::isnan(a) || std::isnan(b))
             return false;
         else
             return std::abs(a - b) > tol;
@@ -541,8 +549,8 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b) {
     // predicate.
     auto nan_skipping_not_equal_to = [](const complex_t& a,
                                         const complex_t& b) {
-        if ((isnan(a.real()) && isnan(b.real())) ||
-            (isnan(a.imag()) && isnan(b.imag())))
+        if ((std::isnan(a.real()) && std::isnan(b.real())) ||
+            (std::isnan(a.imag()) && std::isnan(b.imag())))
             return false;
         else
             return a != b;
@@ -576,8 +584,8 @@ bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b,
     // predicate.
     auto nan_skipping_not_equal_to = [&tol](const complex_t& a,
                                             const complex_t& b) {
-        if ((isnan(a.real()) && isnan(b.real())) ||
-            (isnan(a.imag()) && isnan(b.imag())))
+        if ((std::isnan(a.real()) && std::isnan(b.real())) ||
+            (std::isnan(a.imag()) && std::isnan(b.imag())))
             return false;
         else
             return std::abs(a - b) > tol;
@@ -1370,7 +1378,7 @@ svd_t<DIM_ROWS, DIM_COLS> svd(const mat<DIM_ROWS, DIM_COLS>& M) {
     auto      s     = std::make_unique<real_t[]>(ds);
     auto      u     = std::make_unique<real_t[]>(ldu * m);
     auto      vt    = std::make_unique<real_t[]>(ldvt * n);
-    auto      work  = std::make_unique<real_t[]>(std::max(1, lwork));
+    auto      work  = std::make_unique<real_t[]>(lwork); // std::max(1, lwork));
     auto      iwork = std::make_unique<integer_t[]>(8 * ds);
     integer_t info;
 

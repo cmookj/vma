@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
+
 project(linalg_test)
+
 
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 17)
+
 
 include(FetchContent)
 FetchContent_Declare(
@@ -15,19 +18,26 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(
-  linalg_test
+add_executable(linalg_test
   test.cpp
   ${PROJECT_BINARY_DIR}/../../src/linear_algebra.cpp
 )
 
 target_include_directories(linalg_test PUBLIC
+    /usr/local/include/lapack
     ${PROJECT_BINARY_DIR}/../../include/lalib
     )
 
-target_link_libraries(
-  linalg_test
+target_link_directories(linalg_test PUBLIC
+    /usr/local/lib/lapack
+    )
+
+target_link_libraries(linalg_tes
   GTest::gtest_main
+  lapack
+  blas
+  f2c
+  cblas
 )
 
 include(GoogleTest)
