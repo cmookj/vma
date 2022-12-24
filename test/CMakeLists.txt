@@ -9,8 +9,7 @@ if (BUILD_TESTING)
     elseif(UNIX AND NOT APPLE)
         set(extra_libs 
             libopenblas.a
-            libgfortran.a
-            libf2c.a
+            libgfortran.a # libopenblas requires link to _gfortran_concat_string
             )
     endif()
 
@@ -27,22 +26,3 @@ if (BUILD_TESTING)
     # Finds all the Google tests associated with the executable
     gtest_discover_tests(blat_test)
 endif()
-
-
-#target_include_directories(linalg_test PUBLIC
-#/usr/local/include/lapack
-#${PROJECT_BINARY_DIR}/../../include/lalib
-#)
-#
-#target_link_directories(linalg_test PUBLIC
-#/usr/local/lib/lapack
-#)
-#
-#target_link_libraries(linalg_tes
-#GTest::gtest_main
-#lapack
-#blas
-#f2c
-#cblas
-#)
-#
