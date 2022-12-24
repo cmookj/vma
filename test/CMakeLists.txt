@@ -6,10 +6,17 @@ if (BUILD_TESTING)
     if(APPLE)
         find_library(ACCELERATE_LIBRARY Accelerate)
         set(extra_libs ${ACCELERATE_LIBRARY})
+    elseif(UNIX AND NOT APPLE)
+        set(extra_libs 
+            libopenblas.a
+            libgfortran.a
+            libf2c.a
+            )
     endif()
 
     target_include_directories(blat_test PRIVATE 
-        ${PROJECT_SOURCE_DIR}/blat/include)
+        ${PROJECT_SOURCE_DIR}/blat/include
+        )
 
     target_link_libraries(blat_test PRIVATE 
         blat

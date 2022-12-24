@@ -7,4 +7,7 @@ add_library(blat STATIC
     ${PROJECT_SOURCE_DIR}/src/blat.cpp)
 
 target_include_directories(blat PUBLIC
-    ${PROJECT_SOURCE_DIR}/include)
+    ${PROJECT_SOURCE_DIR}/include
+    /usr/local/include/lapack
+    )
+

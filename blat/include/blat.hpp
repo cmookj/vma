@@ -35,9 +35,9 @@ using real_t    = __CLPK_doublereal;
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-#include "f2c.h"
-#include "cblas.h"
-#include "clapack.h"
+#include <f2c.h>
+#include <cblas.h>
+#include <clapack.h>
 #undef abs
 
 #include <cstdint>
@@ -47,15 +47,28 @@ using real_t    = doublereal;
 #endif
 
 #if defined(__linux) || defined(__linux__)
-#include "f2c.h"
-#include "cblas.h"
-#include "clapack.h"
+#include <f2c.h>
+#include <cblas.h>
+#include <clapack.h>
 #undef abs
 #undef min 
 #undef max
 
 using integer_t = integer;
 using real_t    = doublereal;
+
+extern "C" {
+extern void dgetrf_(const int*, const int*, double*, const int*, int*, int*);
+
+extern int dgesdd_(char *, integer *, integer *, doublereal *, integer *, doublereal *, doublereal *, integer *, doublereal *, integer *, doublereal *, integer *, integer *, integer *);
+
+extern int dgetri_(integer *, doublereal *, integer *, integer *, doublereal *, integer *, integer *);
+
+extern int dsyev_(char *, char *, integer *, doublereal *, integer *, doublereal *, doublereal *, integer *, integer *);
+
+extern int dgeev_(char *, char *, integer *, doublereal *, integer *, doublereal *, doublereal *, doublereal *, integer *, doublereal *, integer *, doublereal *, integer *, integer *);
+}
+
 #endif
 
 namespace tls::blat {
