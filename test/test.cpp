@@ -5,7 +5,7 @@
 //  Created by Changmook Chun on 2022-12-22.
 //
 
-#include "linear_algebra.hpp"
+#include "blat.hpp"
 #include <gtest/gtest.h>
 
 using namespace std;

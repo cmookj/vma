@@ -1,11 +1,11 @@
 //
-//  linear_algebra.cpp
-//  Linear Algebra
+//  blat.cpp
+//  Basic Linear Algebra Toolkit
 //
 //  Created by Changmook Chun on 2022-12-15.
 //
 
-#include "linear_algebra.hpp"
+#include "blat.hpp"
 
 using namespace tls::blat;
 

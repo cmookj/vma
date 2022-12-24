@@ -1,7 +1,7 @@
 //===------------------------------------------------------------*- C++ -*-===//
 //
-//  linear_algebra.hpp
-//  LinearAlgebra
+//  blat.hpp
+//  Basic Linear Algebra Toolkit
 //
 //  Created by Changmook Chun on 2022/11/25.
 //  Copyright © 2022 Teaeles.com. All rights reserved.
