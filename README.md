@@ -4,6 +4,20 @@ This is a very simple linear algebra library.
 Currently, it supports real/complex vectors and matrices.
 The test cases in test/TestLinearAlgebra.mm shows how to use the library (tentative).
 
+## System Requirement
+
+### macOS
+
+Tested on macOS Ventura 13.1
+
+### Ubuntu Linux
+
+Tested on Ubuntu 22.04 in QEMU virtual machine (ARM 64), which requires
+
+```shell
+sudo apt install -y libf2c2-dev libatlas-base-dev libgfortran-11-dev
+```
+
 ## License
 
 Copyright (C) 2022 by Changmook Chun <cmookj_at_duck.com>
