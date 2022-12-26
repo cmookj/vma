@@ -663,7 +663,12 @@ TEST(MatrixTest, Eigensystem) {
     // Eigenvectors
     for (std::size_t j = 1; j < 5; ++j)
         EXPECT_EQ(
+            collinear(tls::blat::real(es1.eigvecs_rt.col(j)), evec1.col(j), 0.0001), true);
+
+    /*
+        EXPECT_EQ(
             close_collinear(tls::blat::real(es1.eigvecs_rt.col(j)), evec1.col(j), 0.0001), true);
+            */
 
     // Case study: asymmetric matrix
     mat<4, 4> m2{{0, 2, 0, 1}, {2, 2, 3, 2}, {4, -3, 0, 1}, {6, 1, -6, -5}};
@@ -710,9 +715,16 @@ TEST(MatrixTest, Eigensystem) {
 
         // Eigenvectors
         EXPECT_EQ(
+            collinear(es2.eigvecs_rt.col(j), r_evec2.col(j), 0.0001), true);
+        EXPECT_EQ(
+            collinear(es2.eigvecs_lft.col(j), l_evec2.col(j), 0.0001), true);
+
+        /*
+        EXPECT_EQ(
             close_collinear(es2.eigvecs_rt.col(j), r_evec2.col(j), 0.0001), true);
         EXPECT_EQ(
             close_collinear(es2.eigvecs_lft.col(j), l_evec2.col(j), 0.0001), true);
+            */
     }
 }
 
