@@ -497,21 +497,6 @@ template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b, doubl
     // But, to ignore 'nan' which is the result of 0./0., we need a special
     // predicate.
 
-    /** Original naive implementation
-    auto nan_skipping_not_equal_to = [](const double& a, const double& b) {
-        if (std::isnan(a) || std::isnan(b))
-            return false;
-        else
-            return a != b;
-    };
-
-    if (std::adjacent_find(ratio.begin(), ratio.end(),
-                           nan_skipping_not_equal_to) == ratio.end())
-        return true;
-
-    return false;
-    */
-
     auto nan_skipping_not_equal_to = [&tol](const double& a, const double& b) {
         if (std::isnan(a) || std::isnan(b))
             return false;
@@ -525,40 +510,6 @@ template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b, doubl
 
     return false;
 }
-
-/**
- @brief Determines whether two real vectors have nearly the same direction
- */
-/*
-template <size_t DIM>
-bool close_collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
-    std::array<double, DIM> ratio{};
-    std::transform(a.cbegin(), a.cend(), b.cbegin(), ratio.begin(),
-                   std::divides<>{});
-
-    // Originally, the following expression in if statement should be either
-    //   if (std::adjacent_find(ratio.begin(), ratio.end(),
-    //   std::not_equal_to<>())
-    //       == ratio.end())
-    // or,
-    //   if (std::equal(ratio.begin() + 1, ratio.end(), ratio.begin()))
-    //
-    // But, to ignore 'nan' which is the result of 0./0., we need a special
-    // predicate.
-    auto nan_skipping_not_equal_to = [&tol](const double& a, const double& b) {
-        if (std::isnan(a) || std::isnan(b))
-            return false;
-        else
-            return std::abs(a - b) > tol;
-    };
-
-    if (std::adjacent_find(ratio.begin(), ratio.end(),
-                           nan_skipping_not_equal_to) == ratio.end())
-        return true;
-
-    return false;
-}
-*/
 
 /**
  @brief Determines whether two compelx vectors have the same direction
@@ -579,23 +530,6 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, doubl
     // But, to ignore 'nan' which is the result of 0./0., we need a special
     // predicate.
    
-    /** Original naive implementation
-    auto nan_skipping_not_equal_to = [](const complex_t& a,
-                                        const complex_t& b) {
-        if ((std::isnan(a.real()) && std::isnan(b.real())) ||
-            (std::isnan(a.imag()) && std::isnan(b.imag())))
-            return false;
-        else
-            return a != b;
-    };
-
-    if (std::adjacent_find(ratio.begin(), ratio.end(),
-                           nan_skipping_not_equal_to) == ratio.end())
-        return true;
-
-    return false;
-    */
-
     auto nan_skipping_not_equal_to = [&tol](const complex_t& a,
                                             const complex_t& b) {
         if ((std::isnan(a.real()) && std::isnan(b.real())) ||
@@ -612,42 +546,6 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, doubl
     return false;
 }
 
-/**
- @brief Determines whether two compelx vectors have nearly the same direction
- */
-/*
-template <size_t DIM>
-bool close_collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b,
-                     double tol = TOL) {
-    std::array<complex_t, DIM> ratio{};
-    std::transform(a.cbegin(), a.cend(), b.cbegin(), ratio.begin(),
-                   std::divides<>{});
-
-    // Originally, the following expression in if statement should be either
-    //   if (std::adjacent_find(ratio.begin(), ratio.end(),
-    //   std::not_equal_to<>())
-    //       == ratio.end())
-    // or,
-    //   if (std::equal(ratio.begin() + 1, ratio.end(), ratio.begin()))
-    //
-    // But, to ignore 'nan' which is the result of 0./0., we need a special
-    // predicate.
-    auto nan_skipping_not_equal_to = [&tol](const complex_t& a,
-                                            const complex_t& b) {
-        if ((std::isnan(a.real()) && std::isnan(b.real())) ||
-            (std::isnan(a.imag()) && std::isnan(b.imag())))
-            return false;
-        else
-            return std::abs(a - b) > tol;
-    };
-
-    if (std::adjacent_find(ratio.begin(), ratio.end(),
-                           nan_skipping_not_equal_to) == ratio.end())
-        return true;
-
-    return false;
-}
-*/
 
 // =============================================================================
 //                                                     C L A S S  :  M A T R I X

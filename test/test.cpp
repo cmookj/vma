@@ -387,9 +387,9 @@ TEST(MatrixTest, Multiplication) {
         {715, 830, 945, 1060, 1175, 1290}, {770, 895, 1020, 1145, 1270, 1395}};
     EXPECT_EQ(m12, m12_desired);
 
-    mat<512, 512> mm0;
-    mat<512, 512> mm1;
-    mat<512, 512> mm2;
+    mat<256, 256> mm0;
+    mat<256, 256> mm1;
+    mat<256, 256> mm2;
 
     for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
         for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
@@ -572,7 +572,7 @@ TEST(MatrixTest, Determinant) {
                  {4.1, -3.4, 2.3, 1.2},
                  {-2.1, 1.4, 3.2, 4.1},
                  {3.3, 2.2, -1.4, 4.1}};
-    EXPECT_EQ(det(m3), -1028.5596);
+    EXPECT_FLOAT_EQ(det(m3), -1028.5596);
 }
 
 TEST(MatrixTest, Inversion) {
