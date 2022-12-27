@@ -11,38 +11,6 @@
 using namespace std;
 using namespace tls::blat;
 
-/*
-    mat<512, 512> mm0;
-    mat<512, 512> mm1;
-    mat<512, 512> mm2;
-    */
-
-/*
-void setup() {
-    // Put setup code here. This method is called before the invocation of each
-test method in the class.
-
-    for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
-        for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
-            mm0(i, j) = i;
-
-    for (std::size_t i = 1; i <= mm1.count_rows(); ++i)
-        for (std::size_t j = 1; j <= mm1.count_cols(); ++j)
-            mm1(i, j) = i;
-
-    for (std::size_t i = 1; i <= mm2.count_rows(); ++i)
-        for (std::size_t j = 1; j <= mm2.count_cols(); ++j)
-            mm2(i, j) = j;
-}
-*/
-
-/*
-void test_down() {
-    // Put teardown code here. This method is called after the invocation of
-each test method in the class.
-}
-*/
-
 TEST(VectorTest, CreationAccess) {
     vec<5> v1;
     for (std::size_t i = 1; i <= v1.dim(); ++i)
