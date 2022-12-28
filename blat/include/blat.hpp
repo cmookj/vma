@@ -11,7 +11,6 @@
 #define __LINEAR_ALGEBRA_H_
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <complex>
 #include <cstring> // for memcpy
@@ -26,7 +25,9 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <utility>
+#include <vector>
 
 #if defined(__APPLE__)
 #include <vecLib/vecLib.h>
@@ -35,9 +36,9 @@ using real_t    = __CLPK_doublereal;
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <f2c.h>
 #include <cblas.h>
 #include <clapack.h>
+#include <f2c.h>
 #undef abs
 
 #include <cstdint>
@@ -47,11 +48,11 @@ using real_t    = doublereal;
 #endif
 
 #if defined(__linux) || defined(__linux__)
-#include <f2c.h>
 #include <cblas.h>
 #include <clapack.h>
+#include <f2c.h>
 #undef abs
-#undef min 
+#undef min
 #undef max
 
 using integer_t = integer;
@@ -60,13 +61,19 @@ using real_t    = doublereal;
 extern "C" {
 extern void dgetrf_(const int*, const int*, double*, const int*, int*, int*);
 
-extern int dgesdd_(char *, integer *, integer *, doublereal *, integer *, doublereal *, doublereal *, integer *, doublereal *, integer *, doublereal *, integer *, integer *, integer *);
+extern int dgesdd_(char*, integer*, integer*, doublereal*, integer*,
+                   doublereal*, doublereal*, integer*, doublereal*, integer*,
+                   doublereal*, integer*, integer*, integer*);
 
-extern int dgetri_(integer *, doublereal *, integer *, integer *, doublereal *, integer *, integer *);
+extern int dgetri_(integer*, doublereal*, integer*, integer*, doublereal*,
+                   integer*, integer*);
 
-extern int dsyev_(char *, char *, integer *, doublereal *, integer *, doublereal *, doublereal *, integer *, integer *);
+extern int dsyev_(char*, char*, integer*, doublereal*, integer*, doublereal*,
+                  doublereal*, integer*, integer*);
 
-extern int dgeev_(char *, char *, integer *, doublereal *, integer *, doublereal *, doublereal *, doublereal *, integer *, doublereal *, integer *, doublereal *, integer *, integer *);
+extern int dgeev_(char*, char*, integer*, doublereal*, integer*, doublereal*,
+                  doublereal*, doublereal*, integer*, doublereal*, integer*,
+                  doublereal*, integer*, integer*);
 }
 
 #endif
@@ -120,11 +127,11 @@ int set_format(std::stringstream& strm, output_fmt fmt = output_fmt::nml);
  */
 template <size_t DIM, typename T = double> class vec {
 protected:
-    std::array<T, DIM> _elem;
+    std::vector<T> _elem;
 
 public:
     // Default constructor and destructor
-    vec() { _elem.fill(0.); }
+    vec() : _elem{std::vector<T>(DIM, 0.)} {}
     virtual ~vec() = default;
 
     // Copy constructor & assignment
@@ -136,28 +143,19 @@ public:
     vec& operator=(vec&&) noexcept = default;
 
     // Other constructors
-    vec(std::array<T, DIM>&& elm) : _elem{std::move(elm)} {}
+    vec(std::vector<T>&& elm) : _elem{std::move(elm)} {}
 
-    vec(const T v) {
-        std::for_each(_elem.begin(), _elem.end(), [&v](T& e) { e = v; });
-    }
+    vec(const T v) : _elem{std::vector<T>(DIM, v)} {}
 
-    vec(const double* vp) {
+    vec(const double* vp) : _elem{std::vector<T>(DIM, 0.)} {
         std::for_each(_elem.begin(), _elem.end(), [&vp](T& e) { e = *(vp++); });
     }
 
-    vec(const std::initializer_list<T>& il) {
-        if (il.size() == 1)
-            _elem.fill(*il.begin());
-
-        else if (il.size() <= DIM)
-            std::transform(il.begin(), il.end(), _elem.begin(),
-                           [](const T& v) -> T { return v; });
-    }
+    vec(const std::initializer_list<T>& il) : _elem{il} {}
 
     // Access methods
-    std::array<T, DIM>&       elem() { return _elem; }
-    const std::array<T, DIM>& elem() const { return _elem; }
+    std::vector<T>&       elem() { return _elem; }
+    const std::vector<T>& elem() const { return _elem; }
 
     using iterator = T*;
     T*                 begin() { return &_elem[0]; }
@@ -165,8 +163,8 @@ public:
     constexpr const T* cbegin() const noexcept { return &_elem[0]; }
     constexpr const T* cend() const noexcept { return &_elem[0] + DIM; }
 
-    constexpr T*       data() noexcept { return &_elem[0]; }
-    constexpr const T* data() const noexcept { return &_elem[0]; }
+    constexpr T*       data() noexcept { return _elem.data(); }
+    constexpr const T* data() const noexcept { return _elem.data(); }
 
     // Subscript operators
     T& operator[](const size_t n) {
@@ -182,7 +180,30 @@ public:
     size_t dim() const { return _elem.size(); }
 
     // Equality
-    bool operator==(const vec& rhs) const { return _elem == rhs._elem; }
+    bool operator==(const vec& rhs) const {
+        // Calculate difference
+        std::vector<T> diff(DIM);
+        std::transform(cbegin(), cend(), rhs.cbegin(), diff.begin(),
+                       std::minus<>{});
+
+        if constexpr (std::is_floating_point<T>::value) {
+            const T eps          = std::numeric_limits<T>::epsilon();
+            auto    greater_than_eps = [&eps](const T& v) {
+                return std::abs(v) > eps;
+            };
+            return std::find_if(diff.cbegin(), diff.cend(), greater_than_eps) ==
+                   diff.cend();
+        } else if constexpr (std::is_same_v<T, complex_t>) {
+            const double eps          = std::numeric_limits<double>::epsilon();
+            auto    greater_than_eps = [&eps](const T& v) {
+                return std::abs(v) > eps;
+            };
+            return std::find_if(diff.cbegin(), diff.cend(), greater_than_eps) ==
+                   diff.end();
+        } else
+            return _elem == rhs._elem;
+    }
+
     bool operator!=(const vec& rhs) const { return !(_elem == rhs._elem); }
 
     // Binary arithmetic operators
@@ -238,7 +259,7 @@ std::string to_string(const vec<DIM, T>& v, output_fmt fmt = output_fmt::nml) {
  @brief Creates a vector with random numbers in uniform distribution
  */
 template <size_t DIM> vec<DIM> rand() {
-    std::array<double, DIM> elm;
+    std::vector<double> elm(DIM, 0.);
 
     std::random_device               rdu;
     std::mt19937                     genu(rdu());
@@ -254,7 +275,7 @@ template <size_t DIM> vec<DIM> rand() {
  @brief Creates a vector with random numbers in normal distribution
  */
 template <size_t DIM> vec<DIM> randn() {
-    std::array<double, DIM> elm;
+    std::vector<double> elm(DIM, 0.);
 
     std::random_device         rdn;
     std::mt19937               genn(rdn());
@@ -274,7 +295,7 @@ template <size_t DIM> vec<DIM> randn() {
  */
 template <size_t DIM, typename T>
 vec<DIM, complex_t> conj(const vec<DIM, T>& v) {
-    std::array<complex_t, DIM> elm;
+    std::vector<complex_t> elm(DIM);
 
     auto conj = [](const auto& c) { return std::conj(c); };
     std::transform(v.cbegin(), v.cend(), elm.begin(), conj);
@@ -289,7 +310,7 @@ vec<DIM, complex_t> conj(const vec<DIM, T>& v) {
  */
 template <size_t DIM>
 vec<DIM, complex_t> cvec(const double* re, const double* im) {
-    std::array<complex_t, DIM> elm;
+    std::vector<complex_t> elm(DIM);
 
     for (size_t i = 0; i < DIM; ++i)
         elm[i] = complex_t{re[i], im[i]};
@@ -302,7 +323,7 @@ vec<DIM, complex_t> cvec(const double* re, const double* im) {
  */
 template <size_t DIM>
 vec<DIM, complex_t> cvec(const vec<DIM>& re, const vec<DIM>& im) {
-    std::array<complex_t, DIM> elm;
+    std::vector<complex_t> elm(DIM);
 
     for (size_t i = 0; i < DIM; ++i)
         elm[i] = complex_t{re.elem()[i], im.elem()[i]};
@@ -316,7 +337,7 @@ vec<DIM, complex_t> cvec(const vec<DIM>& re, const vec<DIM>& im) {
  @details The imaginary parts are all set to 0.
  */
 template <size_t DIM> vec<DIM, complex_t> cvec(const vec<DIM>& re) {
-    std::array<complex_t, DIM> elm;
+    std::vector<complex_t> elm(DIM);
 
     for (size_t i = 0; i < DIM; ++i)
         elm[i] = complex_t{re.elem()[i], 0.};
@@ -442,7 +463,7 @@ vec<DIM, T> operator/(const vec<DIM, T>& a, const double s) {
  @brief Extracts real part of a complex vector as a new real vector
  */
 template <size_t DIM> vec<DIM> real(const vec<DIM, complex_t>& v) {
-    std::array<double, DIM> elm{};
+    std::vector<double> elm(DIM);
 
     auto re = [](const complex_t& c) { return c.real(); };
     std::transform(v.cbegin(), v.cend(), elm.begin(), re);
@@ -454,7 +475,7 @@ template <size_t DIM> vec<DIM> real(const vec<DIM, complex_t>& v) {
  @brief Extracts imaginary part of a complex vector as a new real vector
  */
 template <size_t DIM> vec<DIM> imag(const vec<DIM, complex_t>& v) {
-    std::array<double, DIM> elm{};
+    std::vector<double> elm(DIM);
 
     auto im = [](const complex_t& c) { return c.imag(); };
     std::transform(v.cbegin(), v.cend(), elm.begin(), im);
@@ -482,8 +503,9 @@ bool close(const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = TOL) {
 /**
  @brief Determines whether two real vectors have the same direction
  */
-template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
-    std::array<double, DIM> ratio{};
+template <size_t DIM>
+bool collinear(const vec<DIM>& a, const vec<DIM>& b, double tol = TOL) {
+    std::vector<double> ratio(DIM);
     std::transform(a.cbegin(), a.cend(), b.cbegin(), ratio.begin(),
                    std::divides<>{});
 
@@ -504,19 +526,17 @@ template <size_t DIM> bool collinear(const vec<DIM>& a, const vec<DIM>& b, doubl
             return std::abs(a - b) > tol;
     };
 
-    if (std::adjacent_find(ratio.begin(), ratio.end(),
-                           nan_skipping_not_equal_to) == ratio.end())
-        return true;
-
-    return false;
+    return std::adjacent_find(ratio.begin(), ratio.end(),
+                              nan_skipping_not_equal_to) == ratio.end();
 }
 
 /**
  @brief Determines whether two compelx vectors have the same direction
  */
 template <size_t DIM>
-bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, double tol = TOL) {
-    std::array<complex_t, DIM> ratio{};
+bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b,
+               double tol = TOL) {
+    std::vector<complex_t> ratio(DIM);
     std::transform(a.cbegin(), a.cend(), b.cbegin(), ratio.begin(),
                    std::divides<>{});
 
@@ -529,7 +549,7 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, doubl
     //
     // But, to ignore 'nan' which is the result of 0./0., we need a special
     // predicate.
-   
+
     auto nan_skipping_not_equal_to = [&tol](const complex_t& a,
                                             const complex_t& b) {
         if ((std::isnan(a.real()) && std::isnan(b.real())) ||
@@ -539,13 +559,9 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, doubl
             return std::abs(a - b) > tol;
     };
 
-    if (std::adjacent_find(ratio.begin(), ratio.end(),
-                           nan_skipping_not_equal_to) == ratio.end())
-        return true;
-
-    return false;
+    return std::adjacent_find(ratio.begin(), ratio.end(),
+                              nan_skipping_not_equal_to) == ratio.end();
 }
-
 
 // =============================================================================
 //                                                     C L A S S  :  M A T R I X
@@ -561,11 +577,11 @@ bool collinear(const vec<DIM, complex_t>& a, const vec<DIM, complex_t>& b, doubl
 template <size_t DIM_ROWS, size_t DIM_COLS, typename T = double> class mat {
 protected:
     static constexpr size_t SZ = DIM_ROWS * DIM_COLS;
-    std::array<T, SZ>       _elem;
+    std::vector<T>          _elem;
 
 public:
     // Default constructor and destructor
-    mat() { _elem.fill(0.); }
+    mat() : _elem{std::vector<T>(SZ, 0.)} {}
     virtual ~mat() = default;
 
     // Copy constructor & assignment
@@ -577,9 +593,9 @@ public:
     mat& operator=(mat&&) noexcept = default;
 
     // Other constructors
-    mat(std::array<T, SZ>&& elm) : _elem{std::move(elm)} {}
+    mat(std::vector<T>&& elm) : _elem{std::move(elm)} {}
 
-    mat(const T v) {
+    mat(const T v) : _elem{std::vector<T>(SZ, 0.)} {
         std::for_each(_elem.begin(), _elem.end(), [&v](T& e) { e = v; });
     }
 
@@ -588,7 +604,7 @@ public:
 
      @details This function assumes the array is in row major order.
      */
-    mat(const double* vp) {
+    mat(const double* vp) : _elem{std::vector<T>(SZ)} {
         size_t idx{0};
         for (size_t j = 0; j < DIM_COLS; ++j)
             for (size_t i = 0; i < DIM_ROWS; ++i)
@@ -600,11 +616,12 @@ public:
 
      @details This function assumes the list is in row major order.
      */
-    mat(const std::initializer_list<std::initializer_list<T>>& il) {
-        size_t             idx{0};
-        size_t             i{0};
-        size_t             count{SZ};
-        std::array<T, SZ>& elm{_elem};
+    mat(const std::initializer_list<std::initializer_list<T>>& il)
+        : _elem{std::vector<T>(SZ, 0.)} {
+        size_t          idx{0};
+        size_t          i{0};
+        size_t          count{SZ};
+        std::vector<T>& elm{_elem};
 
         auto extract_row = [&i, &idx, &count,
                             &elm](const std::initializer_list<T>& row) {
@@ -619,8 +636,8 @@ public:
     }
 
     // Access methods
-    std::array<T, SZ>&       elem() { return _elem; }
-    const std::array<T, SZ>& elem() const { return _elem; }
+    std::vector<T>&       elem() { return _elem; }
+    const std::vector<T>& elem() const { return _elem; }
 
     using iterator = T*;
     T*                 begin() { return &_elem[0]; }
@@ -628,8 +645,8 @@ public:
     constexpr const T* cbegin() const noexcept { return &_elem[0]; }
     constexpr const T* cend() const noexcept { return &_elem[0] + SZ; }
 
-    constexpr T*       data() noexcept { return &_elem[0]; }
-    constexpr const T* data() const noexcept { return &_elem[0]; }
+    constexpr T*       data() noexcept { return _elem.data(); }
+    constexpr const T* data() const noexcept { return _elem.data(); }
 
     /**
      @brief Index operator
@@ -654,7 +671,7 @@ public:
 
     // Extraction of a column or a row as a vector
     vec<DIM_ROWS, T> col(const size_t j) const {
-        std::array<T, DIM_ROWS> el{};
+        std::vector<T> el(DIM_ROWS);
 
         auto head = _elem.cbegin();
         if ((1 <= j) && (j <= DIM_COLS))
@@ -664,7 +681,7 @@ public:
     }
 
     vec<DIM_COLS, T> row(const size_t i) const {
-        std::array<T, DIM_COLS> el{};
+        std::vector<T> el(DIM_COLS);
 
         if ((1 <= i) && (i <= DIM_ROWS)) {
             auto it = _elem.cbegin() + (i - 1);
@@ -690,7 +707,30 @@ public:
     }
 
     // Equality
-    bool operator==(const mat& rhs) const { return _elem == rhs._elem; }
+    bool operator==(const mat& rhs) const {
+        // Calculate difference
+        std::vector<T> diff(SZ);
+        std::transform(cbegin(), cend(), rhs.cbegin(), diff.begin(),
+                       std::minus<>{});
+
+        if constexpr (std::is_floating_point<T>::value) {
+            const T eps          = std::numeric_limits<T>::epsilon();
+            auto    greater_than_eps = [&eps](const T& v) {
+                return std::abs(v) > eps;
+            };
+            return std::find_if(diff.cbegin(), diff.cend(), greater_than_eps) ==
+                   diff.end();
+        } else if constexpr (std::is_same_v<T, complex_t>) {
+            const double eps          = std::numeric_limits<double>::epsilon();
+            auto    greater_than_eps = [&eps](const T& v) {
+                return std::abs(v) > eps;
+            };
+            return std::find_if(diff.cbegin(), diff.cend(), greater_than_eps) ==
+                   diff.end();
+        } else
+            return _elem == rhs._elem;
+    }
+
     bool operator!=(const mat& rhs) const { return !(*this == rhs); }
 
     // Binary arithmetic operators
@@ -726,7 +766,7 @@ public:
 
     // Matrix multiplication
     mat& operator*=(const mat<DIM_COLS, DIM_COLS, T>& m) {
-        std::array<T, SZ> elm;
+        std::vector<T> elm(SZ);
 
         if constexpr (std::is_same_v<T, double>)
             cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
@@ -768,7 +808,8 @@ std::string to_string(const mat<DIM_ROWS, DIM_COLS, T>& M,
  */
 template <size_t DIM_ROWS, size_t DIM_COLS>
 mat<DIM_ROWS, DIM_COLS> real(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
-    std::array<double, DIM_ROWS * DIM_COLS> elm{};
+    constexpr size_t SZ {DIM_ROWS * DIM_COLS};
+    std::vector<double> elm(SZ);
 
     auto re = [](const complex_t& c) { return c.real(); };
     std::transform(M.cbegin(), M.cend(), elm.begin(), re);
@@ -781,7 +822,8 @@ mat<DIM_ROWS, DIM_COLS> real(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
  */
 template <size_t DIM_ROWS, size_t DIM_COLS>
 mat<DIM_ROWS, DIM_COLS> imag(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
-    std::array<double, DIM_ROWS * DIM_COLS> elm{};
+    constexpr size_t SZ {DIM_ROWS * DIM_COLS};
+    std::vector<double> elm(SZ);
 
     auto im = [](const complex_t& c) { return c.imag(); };
     std::transform(M.cbegin(), M.cend(), elm.begin(), im);
@@ -793,14 +835,13 @@ mat<DIM_ROWS, DIM_COLS> imag(const mat<DIM_ROWS, DIM_COLS, complex_t>& M) {
 //                                                       Special Matrix Creation
 // -----------------------------------------------------------------------------
 /**
- @brief Creates a DIM_COLS x DIM_COLS identity matrix
+ @brief Creates a DIM x DIM identity matrix
  */
-template <size_t DIM_COLS> mat<DIM_COLS, DIM_COLS> identity() {
-    mat<DIM_COLS, DIM_COLS> I{};
+template <size_t DIM> mat<DIM, DIM> identity() {
+    mat<DIM, DIM> I{};
 
-    I.elem().fill(0.);
-    for (size_t i = 0; i < DIM_COLS; ++i)
-        I.elem()[i * DIM_COLS + i] = 1.;
+    for (size_t i = 0; i < DIM; ++i)
+        I.elem()[i * DIM+ i] = 1.;
 
     return I;
 }
@@ -808,9 +849,8 @@ template <size_t DIM_COLS> mat<DIM_COLS, DIM_COLS> identity() {
 /**
  @brief Creates a square matrix with only diagonal elements
  */
-template <size_t DIM> mat<DIM, DIM> diag(std::array<double, DIM>& val) {
-    std::array<double, DIM * DIM> elm{};
-    elm.fill(0.);
+template <size_t DIM> mat<DIM, DIM> diag(std::vector<double>& val) {
+    std::vector<double> elm(DIM * DIM, 0.);
 
     for (size_t i = 0; i < DIM; ++i)
         elm[i * DIM + i] = val[i];
@@ -822,8 +862,7 @@ template <size_t DIM> mat<DIM, DIM> diag(std::array<double, DIM>& val) {
  @brief Creates a square matrix with only diagonal elements
  */
 template <size_t DIM> mat<DIM, DIM> diag(std::initializer_list<double>& il) {
-    std::array<double, DIM * DIM> elm{};
-    elm.fill(0.);
+    std::vector<double> elm(DIM * DIM, 0.);
 
     std::vector<double> val{il};
 
@@ -837,8 +876,7 @@ template <size_t DIM> mat<DIM, DIM> diag(std::initializer_list<double>& il) {
  @brief Creates a square matrix with only diagonal elements
  */
 template <size_t DIM> mat<DIM, DIM> diag(double* val) {
-    std::array<double, DIM * DIM> elm{};
-    elm.fill(0.);
+    std::vector<double> elm(DIM * DIM, 0.);
 
     for (size_t i = 0; i < DIM; ++i)
         elm[i * DIM + i] = val[i];
@@ -851,8 +889,8 @@ template <size_t DIM> mat<DIM, DIM> diag(double* val) {
  */
 template <size_t DIM_ROWS, size_t DIM_COLS, size_t DIM>
 mat<DIM_ROWS, DIM_COLS> diag(const vec<DIM>& v) {
-    std::array<double, DIM_ROWS * DIM_COLS> elm{};
-    elm.fill(0.);
+    constexpr size_t SZ {DIM_ROWS * DIM_COLS};
+    std::vector<double> elm(SZ, 0.);
 
     for (size_t i = 0; i < DIM; ++i)
         elm[i * DIM_ROWS + i] = v.elem()[i];
@@ -864,7 +902,7 @@ mat<DIM_ROWS, DIM_COLS> diag(const vec<DIM>& v) {
  @brief Creates a matrix with random numbers in uniform distribution
  */
 template <size_t DIM_ROWS, size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> rand() {
-    std::array<double, DIM_ROWS * DIM_COLS> elm;
+    std::vector<double> elm(DIM_ROWS * DIM_COLS);
 
     std::random_device               rdu;
     std::mt19937                     genu(rdu());
@@ -880,7 +918,7 @@ template <size_t DIM_ROWS, size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> rand() {
  @brief Creates a matrix with random numbers in normal distribution
  */
 template <size_t DIM_ROWS, size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> randn() {
-    std::array<double, DIM_ROWS * DIM_COLS> elm;
+    std::vector<double> elm(DIM_ROWS * DIM_COLS);
 
     std::random_device         rdn;
     std::mt19937               genn(rdn());
@@ -900,7 +938,7 @@ template <size_t DIM_ROWS, size_t DIM_COLS> mat<DIM_ROWS, DIM_COLS> randn() {
  */
 template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
 mat<DIM_ROWS, DIM_COLS, complex_t> conj(const mat<DIM_ROWS, DIM_COLS, T>& M) {
-    std::array<complex_t, DIM_ROWS * DIM_COLS> elm;
+    std::vector<complex_t> elm(DIM_ROWS * DIM_COLS);
 
     auto conj = [](const auto& c) { return std::conj(c); };
     std::transform(M.cbegin(), M.cend(), elm.begin(), conj);
@@ -915,7 +953,7 @@ mat<DIM_ROWS, DIM_COLS, complex_t> conj(const mat<DIM_ROWS, DIM_COLS, T>& M) {
  */
 template <size_t DIM_ROWS, size_t DIM_COLS>
 mat<DIM_ROWS, DIM_COLS, complex_t> cmat(const double* re, const double* im) {
-    std::array<complex_t, DIM_ROWS * DIM_COLS> elm;
+    std::vector<complex_t> elm(DIM_ROWS * DIM_COLS);
 
     size_t idx{0};
     for (size_t i = 0; i < DIM_ROWS; ++i)
@@ -1076,7 +1114,7 @@ mat<DIM_ROWS, DIM_COLS, T> operator/(const mat<DIM_ROWS, DIM_COLS, T>& m,
 template <size_t DIM_ROWS, size_t DIM, size_t DIM_COLS, typename T>
 mat<DIM_ROWS, DIM_COLS, T> operator*(const mat<DIM_ROWS, DIM, T>& m1,
                                      const mat<DIM, DIM_COLS, T>& m2) {
-    std::array<T, DIM_ROWS * DIM_COLS> elm;
+    std::vector<T> elm(DIM_ROWS * DIM_COLS);
 
     if constexpr (std::is_same_v<T, double>)
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS,
@@ -1099,7 +1137,7 @@ mat<DIM_ROWS, DIM_COLS, T> operator*(const mat<DIM_ROWS, DIM, T>& m1,
 template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
 vec<DIM_COLS, T> operator*(const mat<DIM_ROWS, DIM_COLS, T>& m,
                            const vec<DIM_COLS, T>&           v) {
-    std::array<T, DIM_COLS> elm;
+    std::vector<T> elm(DIM_COLS);
 
     if constexpr (std::is_same_v<T, double>)
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, DIM_ROWS, 1,
@@ -1126,7 +1164,7 @@ vec<DIM_COLS, T> operator*(const mat<DIM_ROWS, DIM_COLS, T>& m,
 template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
 vec<DIM_COLS, T> operator*(const vec<DIM_ROWS, T>&           v,
                            const mat<DIM_ROWS, DIM_COLS, T>& m) {
-    std::array<T, DIM_COLS> elm;
+    std::vector<T> elm(DIM_COLS);
 
     if constexpr (std::is_same_v<T, double>)
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 1, DIM_ROWS,
@@ -1151,12 +1189,9 @@ bool approx(const mat<DIM_ROWS, DIM_COLS, T>& M1,
             const mat<DIM_ROWS, DIM_COLS, T>& M2, const double tol = TOL) {
     auto diff{M1 - M2};
 
-    if (std::find_if(diff.cbegin(), diff.cend(), [&tol](const auto& v) {
+    return std::find_if(diff.cbegin(), diff.cend(), [&tol](const auto& v) {
             return std::abs(v) > tol;
-        }) == std::end(diff.elem()))
-        return true;
-    else
-        return false;
+        }) == diff.end();
 }
 
 // -----------------------------------------------------------------------------
