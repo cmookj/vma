@@ -23,8 +23,10 @@ TEST(VectorTest, CreationAccess) {
         EXPECT_EQ(elem, 0.);
 
     vec<5> v2{1.};
-    for (std::size_t i = 1; i <= v2.dim(); ++i)
-        EXPECT_EQ(v2(i), 1.);
+    std::cout << to_string(v2) << std::endl;
+    EXPECT_FLOAT_EQ(v2(1), 1.);
+    for (std::size_t i = 2; i <= v2.dim(); ++i)
+        EXPECT_FLOAT_EQ(v2(i), 0.);
 
     double a[5] = {1.0, 2.0, 3.0, 4.0, 5.0};
     vec<5> v3{a};
@@ -191,8 +193,8 @@ TEST(VectorTest, NormInnerProductNormalize) {
     vec<6> v4{1, 5, 2, 4, 7, 6};
     EXPECT_EQ(norm(normalize(v4)), 1.);
 
-    vec<4> v5{1};
-    vec<4> v6{2};
+    vec<4> v5{1, 1, 1, 1};
+    vec<4> v6{2, 2, 2, 2};
     EXPECT_EQ(dist(v5, v6), std::sqrt(4 * 1.));
 }
 
@@ -224,8 +226,8 @@ TEST(MatrixTest, CreationIndexing) {
         for (std::size_t j = 1; j <= m2.count_cols(); ++j)
             EXPECT_EQ(m2(i, j), ((i - 1.) + j) * std::pow(-1., i + j));
 
-    std::array<double, 9> el0{1., 2., 3., 4., 5., 6., 7., 8., 9.};
-    std::array<double, 9> el00{1., 2., 3., 4., 5., 6., 7., 8., 9.};
+    std::vector<double> el0{1., 2., 3., 4., 5., 6., 7., 8., 9.};
+    std::vector<double> el00{1., 2., 3., 4., 5., 6., 7., 8., 9.};
     mat<3, 3>             m21{std::move(el0)};
     EXPECT_EQ(m21.count_rows(), 3);
     EXPECT_EQ(m21.count_cols(), 3);
@@ -234,13 +236,13 @@ TEST(MatrixTest, CreationIndexing) {
     auto m3 = identity<10>();
     for (std::size_t i = 1; i <= m3.count_rows(); ++i)
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
-            EXPECT_EQ(m3(i, j), (i == j ? 1. : 0.));
+            EXPECT_FLOAT_EQ(m3(i, j), (i == j ? 1. : 0.));
 
     auto m4 = rand<100, 100>();
 
     auto m5 = randn<100, 100>();
 
-    std::array<double, 10> el1{1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
+    std::vector<double> el1{1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
     auto                   m6 = diag<10>(el1);
     for (std::size_t i = 1; i <= m6.count_rows(); ++i)
         for (std::size_t j = 1; j <= m6.count_cols(); ++j)
@@ -254,9 +256,9 @@ TEST(MatrixTest, CreationIndexing) {
 }
 
 TEST(MatrixTest, Comparison) {
-    std::array<double, 12> e1{1., 2., 3., 4.,  5.,  6.,
+    std::vector<double> e1{1., 2., 3., 4.,  5.,  6.,
                               7., 8., 9., 10., 11., 12.};
-    std::array<double, 12> e2{1., 2., 3., 4.,  5.,  6.,
+    std::vector<double> e2{1., 2., 3., 4.,  5.,  6.,
                               7., 8., 9., 10., 11., 12.};
     mat<3, 4>              m1{std::move(e1)};
     mat<3, 4>              m2{std::move(e2)};
@@ -355,9 +357,9 @@ TEST(MatrixTest, Multiplication) {
         {715, 830, 945, 1060, 1175, 1290}, {770, 895, 1020, 1145, 1270, 1395}};
     EXPECT_EQ(m12, m12_desired);
 
-    mat<256, 256> mm0;
-    mat<256, 256> mm1;
-    mat<256, 256> mm2;
+    mat<4096, 4096> mm0;
+    mat<4096, 4096> mm1;
+    mat<4096, 4096> mm2;
 
     for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
         for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
