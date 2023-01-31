@@ -30,7 +30,8 @@
 #include <vector>
 
 #if defined(__APPLE__)
-#include <vecLib/vecLib.h>
+// #include <vecLib/vecLib.h>
+#include <Accelerate/Accelerate.h>
 using integer_t = __CLPK_integer;
 using real_t    = __CLPK_doublereal;
 #endif
