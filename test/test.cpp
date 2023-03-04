@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 
 using namespace std;
-using namespace tls::blat;
+using namespace gpw::blat;
 
 TEST(VectorTest, CreationAccess) {
     vec<5> v1;
@@ -22,26 +22,26 @@ TEST(VectorTest, CreationAccess) {
     for (const auto& elem : v1)
         EXPECT_EQ(elem, 0.);
 
-    vec<5> v2{1.};
+    vec<5> v2 {1.};
     std::cout << to_string(v2) << std::endl;
     EXPECT_FLOAT_EQ(v2(1), 1.);
     for (std::size_t i = 2; i <= v2.dim(); ++i)
         EXPECT_FLOAT_EQ(v2(i), 0.);
 
     double a[5] = {1.0, 2.0, 3.0, 4.0, 5.0};
-    vec<5> v3{a};
+    vec<5> v3 {a};
     for (std::size_t i = 1; i <= v3.dim(); ++i)
         EXPECT_EQ(v3(i), a[i - 1]);
 
-    vec<5> v4{1, 3, 5, 7, 9};
+    vec<5> v4 {1, 3, 5, 7, 9};
     for (std::size_t i = 1; i <= v4.dim(); ++i)
         EXPECT_EQ(v4(i), 2. * i - 1.);
 
-    vec<5> v5{1.0e1, 3.0e2, 5.0e3, 7.0e4, 9.0e5};
+    vec<5> v5 {1.0e1, 3.0e2, 5.0e3, 7.0e4, 9.0e5};
     for (std::size_t i = 1; i <= v5.dim(); ++i)
         EXPECT_EQ(v5(i), (2. * i - 1.) * std::pow(10., i));
 
-    vec<5> v6{-1, 3, -5, 7, -9};
+    vec<5> v6 {-1, 3, -5, 7, -9};
     for (std::size_t i = 1; i <= v6.dim(); ++i)
         EXPECT_EQ(v6(i), (2. * i - 1.) * std::pow(-1., i));
 
@@ -57,28 +57,28 @@ TEST(VectorTest, CreationAccess) {
 }
 
 TEST(VectorTest, Collinear) {
-    vec<9> v1{1., 2., 3., 4., 5., 6., 7., 8., 9.};
-    vec<9> v2{2. * v1};
+    vec<9> v1 {1., 2., 3., 4., 5., 6., 7., 8., 9.};
+    vec<9> v2 {2. * v1};
 
     EXPECT_EQ(collinear(v1, v2), true);
 
-    vec<9> v3{1., 0., 3., 0., 5., 0., 7., 0., 9.};
-    vec<9> v4{0.3 * v3};
+    vec<9> v3 {1., 0., 3., 0., 5., 0., 7., 0., 9.};
+    vec<9> v4 {0.3 * v3};
 
     EXPECT_EQ(collinear(v3, v4), true);
 
-    vec<4, complex_t> cv1{{1., 2.}, {3., 4.}, {-2., -1.}, {-5., 3.}};
-    vec<4, complex_t> cv2{{2., 4.}, {6., 8.}, {-4., -2.}, {-10., 6.}};
+    vec<4, complex_t> cv1 {{1., 2.}, {3., 4.}, {-2., -1.}, {-5., 3.}};
+    vec<4, complex_t> cv2 {{2., 4.}, {6., 8.}, {-4., -2.}, {-10., 6.}};
     EXPECT_EQ(collinear(cv1, cv2), true);
 
-    vec<4, complex_t> cv3{{1., 2.}, {3., 0.}, {0., -1.}, {-5., 3.}};
-    vec<4, complex_t> cv4{{2., 4.}, {6., 0.}, {0., -2.}, {-10., 6.}};
+    vec<4, complex_t> cv3 {{1., 2.}, {3., 0.}, {0., -1.}, {-5., 3.}};
+    vec<4, complex_t> cv4 {{2., 4.}, {6., 0.}, {0., -2.}, {-10., 6.}};
     EXPECT_EQ(collinear(cv3, cv4), true);
 }
 
 TEST(VectorTest, Comparison) {
-    vec<5> v1{1, 2, 3, 4, 5};
-    vec<5> v2{1. + EPS, 2, 3, 4, 5};
+    vec<5> v1 {1, 2, 3, 4, 5};
+    vec<5> v2 {1. + EPS, 2, 3, 4, 5};
 
     EXPECT_EQ(v1, v1);
     EXPECT_EQ(v1 != v2, true);
@@ -87,7 +87,7 @@ TEST(VectorTest, Comparison) {
 }
 
 TEST(VectorTest, IndexAssignmentComparison) {
-    vec<5> v1{1, 2, 3, 4, 5};
+    vec<5> v1 {1, 2, 3, 4, 5};
 
     v1(2) = -v1(2);
     v1(4) = -v1(4);
@@ -97,23 +97,23 @@ TEST(VectorTest, IndexAssignmentComparison) {
     EXPECT_EQ(v1(4), -4.);
     EXPECT_EQ(v1(5), 5.);
 
-    auto v2{v1};
+    auto v2 {v1};
     EXPECT_EQ(v2, v2);
     EXPECT_EQ(v2, v1);
 
-    auto v3{v1};
+    auto v3 {v1};
     EXPECT_EQ(v3, v1);
 }
 
 TEST(VectorTest, AdditionSubtraction) {
-    vec<5> v1{1, 3, 5, 7, 9};
+    vec<5> v1 {1, 3, 5, 7, 9};
     vec<5> v2(1.);
 
-    auto v3{v1 + v2};
+    auto v3 {v1 + v2};
     for (std::size_t i = 1; i < 6; ++i)
         EXPECT_EQ(v3(i), v1(i) + 1.);
 
-    auto v4{v1 - v2};
+    auto v4 {v1 - v2};
     for (std::size_t i = 1; i < 6; ++i)
         EXPECT_EQ(v4(i), v1(i) - 1.);
 
@@ -132,12 +132,12 @@ TEST(VectorTest, AdditionSubtraction) {
 
 TEST(VectorTest, MultiplicationDivision) {
     const double v[3] = {1., 3., 5.};
-    vec<3>       v1{v};
+    vec<3>       v1 {v};
 
     for (std::size_t i = 0; i < 3; ++i)
         EXPECT_EQ(v1[i], v[i]);
 
-    auto v2{v1 * 2.};
+    auto v2 {v1 * 2.};
     for (std::size_t i = 0; i < 3; ++i)
         EXPECT_EQ(v2[i], v1[i] * 2.);
 
@@ -159,8 +159,8 @@ TEST(VectorTest, MultiplicationDivision) {
 }
 
 TEST(VectorTest, VectorMatrixMultiplication) {
-    mat<3, 3> m1{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    vec<3>    v1{1, 3, 5};
+    mat<3, 3> m1 {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    vec<3>    v1 {1, 3, 5};
 
     auto v2 = m1 * v1; // 22, 49, 76
     EXPECT_EQ(v2[0], 22.);
@@ -174,32 +174,32 @@ TEST(VectorTest, VectorMatrixMultiplication) {
 }
 
 TEST(VectorTest, NormInnerProductNormalize) {
-    vec<3> v0{};
+    vec<3> v0 {};
 
-    vec<3> v1{1, 3, 5};
+    vec<3> v1 {1, 3, 5};
     EXPECT_EQ(norm(v1, 1), 1. + 3. + 5.);
     EXPECT_EQ(norm(v1, 2), std::sqrt(1. + 9. + 25.));
     EXPECT_EQ(norm_inf(v1), 5.);
 
-    vec<3> v2{-1., 3, -5.};
+    vec<3> v2 {-1., 3, -5.};
     EXPECT_EQ(norm(v2, 1), 1. + 3. + 5.);
     EXPECT_EQ(norm(v2, 2), std::sqrt(1. + 9. + 25.));
     EXPECT_EQ(norm_inf(v2), -5.);
 
-    vec<3> v3{2, 4, 6};
+    vec<3> v3 {2, 4, 6};
     EXPECT_EQ(inner(v1, v3), 1. * 2. + 3. * 4. + 5. * 6.);
     EXPECT_EQ(dist(v0, v3), norm(v3));
 
-    vec<6> v4{1, 5, 2, 4, 7, 6};
+    vec<6> v4 {1, 5, 2, 4, 7, 6};
     EXPECT_EQ(norm(normalize(v4)), 1.);
 
-    vec<4> v5{1, 1, 1, 1};
-    vec<4> v6{2, 2, 2, 2};
+    vec<4> v5 {1, 1, 1, 1};
+    vec<4> v6 {2, 2, 2, 2};
     EXPECT_EQ(dist(v5, v6), std::sqrt(4 * 1.));
 }
 
 TEST(MatrixTest, CreationIndexing) {
-    mat<4, 4> m0{};
+    mat<4, 4> m0 {};
     for (std::size_t i = 1; i <= m0.count_rows(); ++i)
         for (std::size_t j = 1; j <= m0.count_cols(); ++j)
             EXPECT_EQ(m0(i, j), 0.);
@@ -210,7 +210,7 @@ TEST(MatrixTest, CreationIndexing) {
     for (const auto& elem : m0)
         EXPECT_EQ(elem, 0.);
 
-    mat<3, 4> m1{{1, 2, 3, 4}, {2., 3., 4., 5.}, {3, 4, 5., 6}};
+    mat<3, 4> m1 {{1, 2, 3, 4}, {2., 3., 4., 5.}, {3, 4, 5., 6}};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
             EXPECT_EQ(m1(i, j), (i - 1.) + j);
@@ -221,14 +221,14 @@ TEST(MatrixTest, CreationIndexing) {
     std::cout << to_string(m1, output_fmt::sci) << std::endl;
     std::cout << to_string(m1, output_fmt::scx) << std::endl;
 
-    mat<3, 4> m2{{1., -2, 3, -4}, {-2., 3, -4, 5.}, {3., -4, 5, -6}};
+    mat<3, 4> m2 {{1., -2, 3, -4}, {-2., 3, -4, 5.}, {3., -4, 5, -6}};
     for (std::size_t i = 1; i <= m2.count_rows(); ++i)
         for (std::size_t j = 1; j <= m2.count_cols(); ++j)
             EXPECT_EQ(m2(i, j), ((i - 1.) + j) * std::pow(-1., i + j));
 
-    std::vector<double> el0{1., 2., 3., 4., 5., 6., 7., 8., 9.};
-    std::vector<double> el00{1., 2., 3., 4., 5., 6., 7., 8., 9.};
-    mat<3, 3>             m21{std::move(el0)};
+    std::vector<double> el0 {1., 2., 3., 4., 5., 6., 7., 8., 9.};
+    std::vector<double> el00 {1., 2., 3., 4., 5., 6., 7., 8., 9.};
+    mat<3, 3>           m21 {std::move(el0)};
     EXPECT_EQ(m21.count_rows(), 3);
     EXPECT_EQ(m21.count_cols(), 3);
     EXPECT_EQ(m21.elem(), el00);
@@ -242,8 +242,8 @@ TEST(MatrixTest, CreationIndexing) {
 
     auto m5 = randn<100, 100>();
 
-    std::vector<double> el1{1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
-    auto                   m6 = diag<10>(el1);
+    std::vector<double> el1 {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
+    auto                m6 = diag<10>(el1);
     for (std::size_t i = 1; i <= m6.count_rows(); ++i)
         for (std::size_t j = 1; j <= m6.count_cols(); ++j)
             EXPECT_EQ(m6(i, j), (i == j ? el1[i - 1] : 0.));
@@ -256,68 +256,66 @@ TEST(MatrixTest, CreationIndexing) {
 }
 
 TEST(MatrixTest, Comparison) {
-    std::vector<double> e1{1., 2., 3., 4.,  5.,  6.,
-                              7., 8., 9., 10., 11., 12.};
-    std::vector<double> e2{1., 2., 3., 4.,  5.,  6.,
-                              7., 8., 9., 10., 11., 12.};
-    mat<3, 4>              m1{std::move(e1)};
-    mat<3, 4>              m2{std::move(e2)};
+    std::vector<double> e1 {1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.};
+    std::vector<double> e2 {1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.};
+    mat<3, 4>           m1 {std::move(e1)};
+    mat<3, 4>           m2 {std::move(e2)};
 
     EXPECT_EQ(m1, m2);
 }
 
 TEST(MatrixTest, VectorExtraction) {
-    mat<8, 10> m1{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-                  {2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-                  {3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-                  {4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
-                  {5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-                  {6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-                  {7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
-                  {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}};
+    mat<8, 10> m1 {{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+                   {2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+                   {3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+                   {4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+                   {5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+                   {6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+                   {7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+                   {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}};
 
     // Extraction of columns
-    vec<8> col0{};
+    vec<8> col0 {};
     EXPECT_EQ(m1.col(0), col0);
 
-    vec<8> col11{};
+    vec<8> col11 {};
     EXPECT_EQ(m1.col(11), col11);
 
-    vec<8> col1{1, 2, 3, 4, 5, 6, 7, 8};
+    vec<8> col1 {1, 2, 3, 4, 5, 6, 7, 8};
     EXPECT_EQ(m1.col(1), col1);
 
-    vec<8> col3{3, 4, 5, 6, 7, 8, 9, 10};
+    vec<8> col3 {3, 4, 5, 6, 7, 8, 9, 10};
     EXPECT_EQ(m1.col(3), col3);
 
-    vec<8> col9{9, 10, 11, 12, 13, 14, 15, 16};
+    vec<8> col9 {9, 10, 11, 12, 13, 14, 15, 16};
     EXPECT_EQ(m1.col(9), col9);
 
     // Extraction of rows
-    vec<10> row0{};
+    vec<10> row0 {};
     EXPECT_EQ(m1.row(0), row0);
 
-    vec<10> row9{};
+    vec<10> row9 {};
     EXPECT_EQ(m1.row(9), row9);
 
-    vec<10> row1{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    vec<10> row1 {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     EXPECT_EQ(m1.row(1), row1);
 
-    vec<10> row4{4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+    vec<10> row4 {4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     EXPECT_EQ(m1.row(4), row4);
 
-    vec<10> row7{7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    vec<10> row7 {7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     EXPECT_EQ(m1.row(7), row7);
 }
 
 TEST(MatrixTest, Transpose) {
-    mat<8, 10> m1{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-                  {2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-                  {3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-                  {4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
-                  {5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-                  {6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-                  {7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
-                  {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}};
+    mat<8, 10> m1 {{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+                   {2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+                   {3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+                   {4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+                   {5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+                   {6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+                   {7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+                   {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}};
     auto       m2 = transpose(m1);
 
     EXPECT_EQ(m1.count_rows(), m2.count_cols());
@@ -334,19 +332,19 @@ TEST(MatrixTest, Transpose) {
 
 TEST(MatrixTest, Multiplication) {
     // Small matrices
-    mat<8, 10> m1{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-                  {2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-                  {3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-                  {4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
-                  {5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-                  {6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-                  {7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
-                  {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}};
-    mat<10, 6> m2{{1, 2, 3, 4, 5, 6},      {2, 3, 4, 5, 6, 7},
-                  {3, 4, 5, 6, 7, 8},      {4, 5, 6, 7, 8, 9},
-                  {5, 6, 7, 8, 9, 10},     {6, 7, 8, 9, 10, 11},
-                  {7, 8, 9, 10, 11, 12},   {8, 9, 10, 11, 12, 13},
-                  {9, 10, 11, 12, 13, 14}, {10, 11, 12, 13, 14, 15}};
+    mat<8, 10> m1 {{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+                   {2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+                   {3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+                   {4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+                   {5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+                   {6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+                   {7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+                   {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}};
+    mat<10, 6> m2 {{1, 2, 3, 4, 5, 6},      {2, 3, 4, 5, 6, 7},
+                   {3, 4, 5, 6, 7, 8},      {4, 5, 6, 7, 8, 9},
+                   {5, 6, 7, 8, 9, 10},     {6, 7, 8, 9, 10, 11},
+                   {7, 8, 9, 10, 11, 12},   {8, 9, 10, 11, 12, 13},
+                   {9, 10, 11, 12, 13, 14}, {10, 11, 12, 13, 14, 15}};
 
     auto m12 = m1 * m2;
 
@@ -378,7 +376,7 @@ TEST(MatrixTest, Multiplication) {
     EXPECT_EQ(mm0.count_rows(), prev_count_rows);
     EXPECT_EQ(mm0.count_cols(), mm2.count_cols());
 
-    const std::size_t p{mm0.count_cols()};
+    const std::size_t p {mm0.count_cols()};
     for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
         for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
             EXPECT_EQ(mm0(i, j), p * i * j);
@@ -390,12 +388,12 @@ TEST(MatrixTest, Multiplication) {
 }
 
 TEST(MatrixTest, AdditionSubtraction) {
-    mat<4, 3> m1{};
+    mat<4, 3> m1 {};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
             m1(i, j) = double(i) + 2. * double(j);
 
-    mat<4, 3> m2{};
+    mat<4, 3> m2 {};
     for (std::size_t i = 1; i <= m2.count_rows(); ++i)
         for (std::size_t j = 1; j <= m2.count_cols(); ++j)
             m2(i, j) = 3. * double(i) - double(j);
@@ -403,18 +401,22 @@ TEST(MatrixTest, AdditionSubtraction) {
     auto m3 = m1 + m2;
     for (std::size_t i = 1; i <= m3.count_rows(); ++i)
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
-            EXPECT_EQ(m3(i, j),
-                      double(i) + 2. * double(j) + 3. * double(i) - double(j));
+            EXPECT_EQ(
+                m3(i, j),
+                double(i) + 2. * double(j) + 3. * double(i) - double(j)
+            );
 
     auto m4 = m1 - m2;
     for (std::size_t i = 1; i <= m4.count_rows(); ++i)
         for (std::size_t j = 1; j <= m4.count_cols(); ++j)
-            EXPECT_EQ(m4(i, j),
-                      double(i) + 2. * double(j) - 3. * double(i) + double(j));
+            EXPECT_EQ(
+                m4(i, j),
+                double(i) + 2. * double(j) - 3. * double(i) + double(j)
+            );
 }
 
 TEST(MatrixTest, ScalarOperation) {
-    mat<6, 8> m1{};
+    mat<6, 8> m1 {};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
             m1(i, j) = i + j - 1.;
@@ -464,7 +466,7 @@ TEST(MatrixTest, ScalarOperation) {
 }
 
 TEST(MatrixTest, Negation) {
-    mat<10, 10> m1{};
+    mat<10, 10> m1 {};
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)
         for (std::size_t j = 1; j <= m1.count_cols(); ++j)
             m1(i, j) = i + j - 1.;
@@ -476,11 +478,11 @@ TEST(MatrixTest, Negation) {
 }
 
 TEST(MatrixText, Manipulation) {
-    mat<4, 4> m0{{1, 2, 3, 4}, {2, 3, 4, 5}, {3, 4, 5, 6}, {4, 5, 6, 7}};
+    mat<4, 4> m0 {{1, 2, 3, 4}, {2, 3, 4, 5}, {3, 4, 5, 6}, {4, 5, 6, 7}};
 
-    auto m1{m0};
+    auto m1 {m0};
 
-    vec<4> v1{};
+    vec<4> v1 {};
     m1.set_col(2, v1);
 
     for (std::size_t i = 1; i <= m1.count_rows(); ++i)
@@ -502,7 +504,7 @@ TEST(MatrixText, Manipulation) {
 
 TEST(MatrixTest, MatrixVectorMultiplication) {
     auto m1 = identity<3>();
-    auto v1 = vec<3>{1.};
+    auto v1 = vec<3> {1.};
 
     auto v11 = m1 * v1;
     EXPECT_EQ(v11, v1);
@@ -515,16 +517,17 @@ TEST(MatrixTest, Trace) {
     auto m = identity<10>();
     EXPECT_EQ(tr(m), 10.);
 
-    mat<2, 2> m1{{3, 7}, {1, -4}};
+    mat<2, 2> m1 {{3, 7}, {1, -4}};
     EXPECT_EQ(tr(m1), -1.);
 
-    mat<3, 3> m2{{1, 2, 3}, {3, 2, 1}, {2, 1, 3}};
+    mat<3, 3> m2 {{1, 2, 3}, {3, 2, 1}, {2, 1, 3}};
     EXPECT_EQ(tr(m2), 6.);
 
-    mat<4, 4> m3{{1.1, 2.2, 3.4, -4.2},
-                 {4.1, -3.4, 2.3, 1.2},
-                 {-2.1, 1.4, 3.2, 4.1},
-                 {3.3, 2.2, -1.4, 4.1}};
+    mat<4, 4> m3 {
+        {1.1, 2.2, 3.4, -4.2},
+        {4.1, -3.4, 2.3, 1.2},
+        {-2.1, 1.4, 3.2, 4.1},
+        {3.3, 2.2, -1.4, 4.1}};
     EXPECT_EQ(tr(m3), 5.);
 }
 
@@ -532,21 +535,22 @@ TEST(MatrixTest, Determinant) {
     auto m = identity<10>();
     EXPECT_EQ(det(m), 1.);
 
-    mat<2, 2> m1{{3, 7}, {1, -4}};
+    mat<2, 2> m1 {{3, 7}, {1, -4}};
     EXPECT_EQ(det(m1), -19.);
 
-    mat<3, 3> m2{{1, 2, 3}, {3, 2, 1}, {2, 1, 3}};
+    mat<3, 3> m2 {{1, 2, 3}, {3, 2, 1}, {2, 1, 3}};
     EXPECT_EQ(det(m2), -12.);
 
-    mat<4, 4> m3{{1.1, 2.2, 3.4, -4.2},
-                 {4.1, -3.4, 2.3, 1.2},
-                 {-2.1, 1.4, 3.2, 4.1},
-                 {3.3, 2.2, -1.4, 4.1}};
+    mat<4, 4> m3 {
+        {1.1, 2.2, 3.4, -4.2},
+        {4.1, -3.4, 2.3, 1.2},
+        {-2.1, 1.4, 3.2, 4.1},
+        {3.3, 2.2, -1.4, 4.1}};
     EXPECT_FLOAT_EQ(det(m3), -1028.5596);
 }
 
 TEST(MatrixTest, Inversion) {
-    mat<3, 3> m1{{1, 2, 3}, {4, 1, 6}, {7, 8, 1}};
+    mat<3, 3> m1 {{1, 2, 3}, {4, 1, 6}, {7, 8, 1}};
     auto      m2 = inv(m1);
     auto      m3 = m1 * m2;
 
@@ -555,13 +559,15 @@ TEST(MatrixTest, Inversion) {
 
     for (std::size_t i = 1; i <= m3.count_rows(); ++i)
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
-            EXPECT_EQ(std::fabs(m3(i, j) - (i == j ? 1. : 0.)) < TOL * 1e2, true);
+            EXPECT_EQ(
+                std::fabs(m3(i, j) - (i == j ? 1. : 0.)) < TOL * 1e2, true
+            );
 }
 
 TEST(MatrixTest, SingularValueDecomposition) {
-    mat<6, 4> M{{7.52, -1.10, -7.95, 1.08}, {-0.76, 0.62, 9.34, -7.10},
-                {5.13, 6.62, -5.66, 0.87},  {-4.75, 8.52, 5.75, 5.30},
-                {1.33, 4.91, -5.49, -3.52}, {-2.40, -6.77, 2.34, 3.95}};
+    mat<6, 4> M {{7.52, -1.10, -7.95, 1.08}, {-0.76, 0.62, 9.34, -7.10},
+                 {5.13, 6.62, -5.66, 0.87},  {-4.75, 8.52, 5.75, 5.30},
+                 {1.33, 4.91, -5.49, -3.52}, {-2.40, -6.77, 2.34, 3.95}};
 
     // One possible SVD of the matrix above:
     //   M = U.Σ.V^†
@@ -597,10 +603,13 @@ TEST(MatrixTest, SingularValueDecomposition) {
 
     auto SVD = svd(M);
     EXPECT_EQ(
-        approx(SVD.U * diag<6, 4, 4>(SVD.S) * transpose(SVD.V), M, 0.000001), true);
+        approx(SVD.U * diag<6, 4, 4>(SVD.S) * transpose(SVD.V), M, 0.000001),
+        true
+    );
 
-    vec<4> singular_values{18.365978454889984, 13.629979679210999,
-                           10.85333572722705, 4.491569094526893};
+    vec<4> singular_values {
+        18.365978454889984, 13.629979679210999, 10.85333572722705,
+        4.491569094526893};
     EXPECT_EQ(norm(SVD.S - singular_values) < TOL * 1e2, true);
     EXPECT_EQ(approx(SVD.U * transpose(SVD.U), identity<6>(), TOL * 1e1), true);
     EXPECT_EQ(approx(SVD.V * transpose(SVD.V), identity<4>(), TOL * 1e1), true);
@@ -616,40 +625,48 @@ TEST(MatrixTest, Norm) {
 
 TEST(MatrixTest, Eigensystem) {
     // Case study: symmetric matrix
-    mat<4, 4> m1{{1, 2, 3, 4}, {2, 2, 3, 4}, {3, 3, 3, 4}, {4, 4, 4, 4}};
+    mat<4, 4> m1 {{1, 2, 3, 4}, {2, 2, 3, 4}, {3, 3, 3, 4}, {4, 4, 4, 4}};
     auto      es1 = eigen(m1, eigen::vec);
 
-    vec<4> eval1{-2.0531157635369963, -0.5146427793906165, -0.2943264517738027,
-                 12.862084994701407};
+    vec<4> eval1 {
+        -2.0531157635369963, -0.5146427793906165, -0.2943264517738027,
+        12.862084994701407};
 
-    mat<4, 4> evec1{{-0.700349, -0.514374, 0.276678, -0.410342},
-                    {-0.359234, 0.485103, -0.663359, -0.442245},
-                    {0.156851, 0.541978, 0.650425, -0.508532},
-                    {0.59654, -0.454262, -0.245667, -0.614356}};
+    mat<4, 4> evec1 {
+        {-0.700349, -0.514374, 0.276678, -0.410342},
+        {-0.359234, 0.485103, -0.663359, -0.442245},
+        {0.156851, 0.541978, 0.650425, -0.508532},
+        {0.59654, -0.454262, -0.245667, -0.614356}};
 
     // Eigenvalues
-    EXPECT_EQ(close(tls::blat::real(es1.eigvals), eval1, 0.00001), true);
+    EXPECT_EQ(close(gpw::blat::real(es1.eigvals), eval1, 0.00001), true);
 
     // Eigenvectors
     for (std::size_t j = 1; j < 5; ++j)
         EXPECT_EQ(
-            collinear(tls::blat::real(es1.eigvecs_rt.col(j)), evec1.col(j), 0.0001), true);
+            collinear(
+                gpw::blat::real(es1.eigvecs_rt.col(j)), evec1.col(j), 0.0001
+            ),
+            true
+        );
 
     /*
         EXPECT_EQ(
-            close_collinear(tls::blat::real(es1.eigvecs_rt.col(j)), evec1.col(j), 0.0001), true);
+            close_collinear(gpw::blat::real(es1.eigvecs_rt.col(j)),
+       evec1.col(j), 0.0001), true);
             */
 
     // Case study: asymmetric matrix
-    mat<4, 4> m2{{0, 2, 0, 1}, {2, 2, 3, 2}, {4, -3, 0, 1}, {6, 1, -6, -5}};
+    mat<4, 4> m2 {{0, 2, 0, 1}, {2, 2, 3, 2}, {4, -3, 0, 1}, {6, 1, -6, -5}};
     auto      es2 = eigen(m2, eigen::vec);
 
-    vec<4, complex_t> eval2{{4.177484212271297, 0.},
-                            {-4.820108319356918, 0.},
-                            {-1.1786879464571869, 3.19870513679807},
-                            {-1.1786879464571869, -3.19870513679807}};
+    vec<4, complex_t> eval2 {
+        {4.177484212271297, 0.},
+        {-4.820108319356918, 0.},
+        {-1.1786879464571869, 3.19870513679807},
+        {-1.1786879464571869, -3.19870513679807}};
 
-    mat<4, 4, complex_t> r_evec2{
+    mat<4, 4, complex_t> r_evec2 {
         {{0.47184, 0.},
          {0.132877, 0.},
          {-0.0806923, 0.0788731},
@@ -664,7 +681,7 @@ TEST(MatrixTest, Eigensystem) {
          {0.422325, -0.431654}},
         {{0.403401, 0.}, {-0.959891, 0.}, {-0.71661, 0.0}, {-0.71661, 0.}}};
 
-    mat<4, 4, complex_t> l_evec2{
+    mat<4, 4, complex_t> l_evec2 {
         {{0.739463, 0.}, {0.827813, 0.}, {-0.741732, 0.0}, {-0.741732, 0.0}},
         {{0.622002, 0.},
          {-0.309312, 0.},
@@ -685,25 +702,27 @@ TEST(MatrixTest, Eigensystem) {
 
         // Eigenvectors
         EXPECT_EQ(
-            collinear(es2.eigvecs_rt.col(j), r_evec2.col(j), 0.0001), true);
+            collinear(es2.eigvecs_rt.col(j), r_evec2.col(j), 0.0001), true
+        );
         EXPECT_EQ(
-            collinear(es2.eigvecs_lft.col(j), l_evec2.col(j), 0.0001), true);
+            collinear(es2.eigvecs_lft.col(j), l_evec2.col(j), 0.0001), true
+        );
 
         /*
         EXPECT_EQ(
-            close_collinear(es2.eigvecs_rt.col(j), r_evec2.col(j), 0.0001), true);
-        EXPECT_EQ(
-            close_collinear(es2.eigvecs_lft.col(j), l_evec2.col(j), 0.0001), true);
+            close_collinear(es2.eigvecs_rt.col(j), r_evec2.col(j), 0.0001),
+        true); EXPECT_EQ( close_collinear(es2.eigvecs_lft.col(j),
+        l_evec2.col(j), 0.0001), true);
             */
     }
 }
 
 TEST(VectorTest, Complex) {
-    vec<4, complex_t> cv1{};
+    vec<4, complex_t> cv1 {};
     for (std::size_t i = 0; i < cv1.dim(); ++i)
         EXPECT_EQ((cv1[i].real() == 0.) && (cv1[i].imag() == 0.), true);
 
-    vec<4, complex_t> cv2{{1, 2}, {2, 3}, {3, 4}, {4, 5}};
+    vec<4, complex_t> cv2 {{1, 2}, {2, 3}, {3, 4}, {4, 5}};
     for (std::size_t i = 0; i < cv2.dim(); ++i)
         EXPECT_EQ((cv2[i].real() == i + 1.) && (cv2[i].imag() == i + 2.), true);
 
@@ -714,16 +733,18 @@ TEST(VectorTest, Complex) {
     std::cout << to_string(cv2, output_fmt::scx) << std::endl;
 
     double            re[] = {1., 2., 3., 4.};
-    vec<4, complex_t> cv3{re};
+    vec<4, complex_t> cv3 {re};
     for (std::size_t i = 0; i < cv3.dim(); ++i)
         EXPECT_EQ(cv3[i].real() == re[i] && cv3[i].imag() == 0., true);
 
     vec<4, complex_t> cv4 = conj(cv2);
     for (std::size_t i = 0; i < cv4.dim(); ++i)
-        EXPECT_EQ(cv2[i].real() == cv4[i].real() &&
-                  cv2[i].imag() == -cv4[i].imag(), true);
+        EXPECT_EQ(
+            cv2[i].real() == cv4[i].real() && cv2[i].imag() == -cv4[i].imag(),
+            true
+        );
 
-    vec<4>            rv1{re};
+    vec<4>            rv1 {re};
     vec<4, complex_t> cv5 = conj(rv1);
     for (std::size_t i = 0; i < cv5.dim(); ++i)
         EXPECT_EQ(cv5[i].real() == rv1[i] && cv5[i].imag() == 0., true);
@@ -733,21 +754,21 @@ TEST(VectorTest, Complex) {
     for (std::size_t i = 0; i < cv6.dim(); ++i)
         EXPECT_EQ(cv6[i].real() == re[i] && cv6[i].imag() == im[i], true);
 
-    vec<4> iv1{im};
+    vec<4> iv1 {im};
     auto   cv7 = cvec<4>(rv1, iv1);
     EXPECT_EQ(cv7, cv6);
 
-    EXPECT_EQ(tls::blat::real(cv7), rv1);
+    EXPECT_EQ(gpw::blat::real(cv7), rv1);
     EXPECT_EQ(imag(cv7), iv1);
 }
 
 TEST(MatrixTest, Complex) {
-    mat<2, 2, complex_t> m1{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
+    mat<2, 2, complex_t> m1 {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
 
-    auto c11 = complex_t{1, 2};
-    auto c12 = complex_t{3, 4};
-    auto c21 = complex_t{5, 6};
-    auto c22 = complex_t{7, 8};
+    auto c11 = complex_t {1, 2};
+    auto c12 = complex_t {3, 4};
+    auto c21 = complex_t {5, 6};
+    auto c22 = complex_t {7, 8};
 
     EXPECT_EQ(m1(1, 1), c11);
     EXPECT_EQ(m1(1, 2), c12);
@@ -755,52 +776,62 @@ TEST(MatrixTest, Complex) {
     EXPECT_EQ(m1(2, 2), c22);
 
     auto              col1 = m1.col(1);
-    vec<2, complex_t> col1_ans{{1, 2}, {5, 6}};
+    vec<2, complex_t> col1_ans {{1, 2}, {5, 6}};
     EXPECT_EQ(col1, col1_ans);
 
     auto              col2 = m1.col(2);
-    vec<2, complex_t> col2_ans{{3, 4}, {7, 8}};
+    vec<2, complex_t> col2_ans {{3, 4}, {7, 8}};
     EXPECT_EQ(col2, col2_ans);
 
     auto              row1 = m1.row(1);
-    vec<2, complex_t> row1_ans{{1, 2}, {3, 4}};
+    vec<2, complex_t> row1_ans {{1, 2}, {3, 4}};
     EXPECT_EQ(row1, row1_ans);
 
     auto              row2 = m1.row(2);
-    vec<2, complex_t> row2_ans{{5, 6}, {7, 8}};
+    vec<2, complex_t> row2_ans {{5, 6}, {7, 8}};
     EXPECT_EQ(row2, row2_ans);
 
     std::cout << to_string(m1) << std::endl;
 
-    vec<2, complex_t> v1{{1, 2}, {3, 4}};
+    vec<2, complex_t> v1 {{1, 2}, {3, 4}};
 
     auto              mv = m1 * v1;
-    vec<2, complex_t> mv_ans{{-10, 28}, {-18, 68}};
+    vec<2, complex_t> mv_ans {{-10, 28}, {-18, 68}};
     EXPECT_EQ(mv, mv_ans);
 
     std::cout << to_string(mv) << std::endl;
 
     mat<2, 2, complex_t> m2 = conj(m1);
 
-    EXPECT_EQ(m2(1, 1).real() == c11.real() && m2(1, 1).imag() == -c11.imag(), true);
-    EXPECT_EQ(m2(1, 2).real() == c12.real() && m2(1, 2).imag() == -c12.imag(), true);
-    EXPECT_EQ(m2(2, 1).real() == c21.real() && m2(2, 1).imag() == -c21.imag(), true);
-    EXPECT_EQ(m2(2, 2).real() == c22.real() && m2(2, 2).imag() == -c22.imag(), true);
+    EXPECT_EQ(
+        m2(1, 1).real() == c11.real() && m2(1, 1).imag() == -c11.imag(), true
+    );
+    EXPECT_EQ(
+        m2(1, 2).real() == c12.real() && m2(1, 2).imag() == -c12.imag(), true
+    );
+    EXPECT_EQ(
+        m2(2, 1).real() == c21.real() && m2(2, 1).imag() == -c21.imag(), true
+    );
+    EXPECT_EQ(
+        m2(2, 2).real() == c22.real() && m2(2, 2).imag() == -c22.imag(), true
+    );
 
-    mat<3, 3> rm1{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+    mat<3, 3> rm1 {{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
 
     auto cm1 = conj(rm1);
     for (std::size_t i = 1; i <= cm1.count_rows(); ++i)
         for (std::size_t j = 1; j <= cm1.count_cols(); ++j)
-            EXPECT_EQ(cm1(i, j).real() == rm1(i, j) && cm1(i, j).imag() == 0., true);
+            EXPECT_EQ(
+                cm1(i, j).real() == rm1(i, j) && cm1(i, j).imag() == 0., true
+            );
 
     double re[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     double im[] = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
     auto   cm2  = cmat<2, 5>(re, im);
     for (std::size_t i = 1; i <= cm2.count_rows(); ++i)
         for (std::size_t j = 1; j <= cm2.count_cols(); ++j) {
-            auto c =
-                complex_t{re[(i - 1) * 5 + (j - 1)], im[(i - 1) * 5 + (j - 1)]};
+            auto c = complex_t {
+                re[(i - 1) * 5 + (j - 1)], im[(i - 1) * 5 + (j - 1)]};
             EXPECT_EQ(cm2(i, j), c);
         }
 }

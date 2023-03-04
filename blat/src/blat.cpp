@@ -7,9 +7,9 @@
 
 #include "blat.hpp"
 
-using namespace tls::blat;
+using namespace gpw::blat;
 
-int tls::blat::set_format(std::stringstream& strm, output_fmt fmt) {
+int gpw::blat::set_format(std::stringstream& strm, output_fmt fmt) {
     int width;
     int precision;
 
