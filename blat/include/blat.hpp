@@ -399,11 +399,13 @@ template <size_t DIM> double norm_inf(const vec<DIM>& v) {
 /**
  @brief Normalizes a vector
  */
-template <size_t DIM> vec<DIM>& normalize(vec<DIM>& v, const unsigned p = 2) {
+template <size_t DIM>
+vec<DIM> normalize(const vec<DIM>& v, const unsigned p = 2) {
     double n = norm(v, p);
-    if (n > TOL)
-        v /= n;
-    return v;
+    if (n < TOL)
+        n = 1.0;
+
+    return vec<DIM> {v / n};
 }
 
 /**
