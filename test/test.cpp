@@ -191,6 +191,7 @@ TEST(Vector, NormInnerProductNormalize) {
   EXPECT_EQ(norm(v2, 1), 1. + 3. + 5.);
   EXPECT_EQ(norm(v2, 2), std::sqrt(1. + 9. + 25.));
   EXPECT_EQ(norm_inf(v2), -5.);
+  EXPECT_FLOAT_EQ(abs(v2), norm(v2));
 
   vec<3> v3{2, 4, 6};
   EXPECT_EQ(inner(v1, v3), 1. * 2. + 3. * 4. + 5. * 6.);

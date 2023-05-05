@@ -392,6 +392,11 @@ vec<DIM> normalize(const vec<DIM> &v, const unsigned p = 2) {
   return vec<DIM>{v / n};
 }
 
+template <size_t DIM>
+double abs(const vec<DIM>& v) {
+  return norm(v);
+}
+
 /**
  @brief Calculates the distance between two vectors
  */
