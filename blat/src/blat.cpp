@@ -9,7 +9,8 @@
 
 using namespace gpw::blat;
 
-int gpw::blat::set_format(std::stringstream& strm, output_fmt fmt) {
+int
+gpw::blat::set_format (std::stringstream& strm, output_fmt fmt) {
     int width;
     int precision;
 
@@ -17,37 +18,37 @@ int gpw::blat::set_format(std::stringstream& strm, output_fmt fmt) {
 
     switch (fmt) {
     case output_fmt::sht:
-        options   = std::ios_base::fixed;
+        options = std::ios_base::fixed;
         precision = 2;
-        width     = 8;
+        width = 8;
         break;
 
     case output_fmt::nml:
-        options   = std::ios_base::fixed;
+        options = std::ios_base::fixed;
         precision = 4;
-        width     = 10;
+        width = 10;
         break;
 
     case output_fmt::ext:
-        options   = std::ios_base::fixed;
+        options = std::ios_base::fixed;
         precision = 8;
-        width     = 14;
+        width = 14;
         break;
 
     case output_fmt::sci:
-        options   = std::ios_base::scientific;
+        options = std::ios_base::scientific;
         precision = 4;
-        width     = 10;
+        width = 10;
         break;
 
     case output_fmt::scx:
-        options   = std::ios_base::scientific;
+        options = std::ios_base::scientific;
         precision = 8;
-        width     = 18;
+        width = 18;
     }
 
-    strm.setf(options, std::ios_base::floatfield);
-    strm.precision(precision);
+    strm.setf (options, std::ios_base::floatfield);
+    strm.precision (precision);
 
     return width;
 }
