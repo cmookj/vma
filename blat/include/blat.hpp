@@ -602,7 +602,7 @@ imag (const vec<DIM, complex_t>& v) {
  */
 template <size_t DIM, typename T>
 bool
-close (const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = TOL) {
+similar (const vec<DIM, T>& a, const vec<DIM, T>& b, double tol = TOL) {
     auto diff = a - b;
     auto abs_square = [] (const auto& v) { return std::abs (v * v); };
 

@@ -102,14 +102,14 @@ TEST (Vector, Comparison) {
     vec<5> v2 {1. + EPS, 2, 3, 4, 5};
 
     EXPECT_EQ (v1, v1);
-    EXPECT_EQ (v1 != v2, true);
+    EXPECT_TRUE (v1 != v2);
 
-    EXPECT_EQ (close (v1, v2), true);
+    EXPECT_TRUE (similar (v1, v2));
 
     vec<3> v3 {1, 2, 3};
     vec<3> v4 {4, 5, 6};
 
-    EXPECT_EQ (v3 < v4, true);
+    EXPECT_TRUE (v3 < v4);
 }
 
 TEST (Vector, IndexAssignmentComparison) {
@@ -766,7 +766,7 @@ TEST (Matrix, Eigensystem) {
     };
 
     // Eigenvalues
-    EXPECT_EQ (close (gpw::blat::real (es1.eigvals), eval1, 0.00001), true);
+    EXPECT_TRUE (similar (gpw::blat::real (es1.eigvals), eval1, 0.00001));
 
     // Eigenvectors
     for (std::size_t j = 1; j < 5; ++j)
@@ -776,12 +776,6 @@ TEST (Matrix, Eigensystem) {
             ),
             true
         );
-
-    /*
-        EXPECT_EQ(
-            close_collinear(gpw::blat::real(es1.eigvecs_rt.col(j)),
-       evec1.col(j), 0.0001), true);
-            */
 
     // Case study: asymmetric matrix
     mat<4, 4> m2 {
@@ -833,22 +827,14 @@ TEST (Matrix, Eigensystem) {
 
     for (std::size_t j = 1; j < 5; ++j) {
         // Eigenvalue
-        EXPECT_EQ (std::abs (es2.eigvals (j) - eval2 (j)) < 0.00001, true);
+        EXPECT_TRUE (std::abs (es2.eigvals (j) - eval2 (j)) < 0.00001);
 
         // Eigenvectors
-        EXPECT_EQ (
-            collinear (es2.eigvecs_rt.col (j), r_evec2.col (j), 0.0001), true
+        EXPECT_TRUE (collinear (es2.eigvecs_rt.col (j), r_evec2.col (j), 0.0001)
         );
-        EXPECT_EQ (
-            collinear (es2.eigvecs_lft.col (j), l_evec2.col (j), 0.0001), true
+        EXPECT_TRUE (
+            collinear (es2.eigvecs_lft.col (j), l_evec2.col (j), 0.0001)
         );
-
-        /*
-        EXPECT_EQ(
-            close_collinear(es2.eigvecs_rt.col(j), r_evec2.col(j), 0.0001),
-        true); EXPECT_EQ( close_collinear(es2.eigvecs_lft.col(j),
-        l_evec2.col(j), 0.0001), true);
-            */
     }
 }
 
