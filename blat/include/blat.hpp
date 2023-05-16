@@ -1522,10 +1522,10 @@ operator* (const vec<DIM_ROWS, T>& v, const mat<DIM_ROWS, DIM_COLS, T>& m) {
  */
 template <size_t DIM_ROWS, size_t DIM_COLS, typename T>
 bool
-approx (
+similar (
     const mat<DIM_ROWS, DIM_COLS, T>& M1,
     const mat<DIM_ROWS, DIM_COLS, T>& M2,
-    const double tol = TOL
+    const double tol = std::numeric_limits<T>::epsilon()
 ) {
     auto diff {M1 - M2};
 
