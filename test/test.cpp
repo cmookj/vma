@@ -708,7 +708,9 @@ TEST (Matrix, SingularValueDecomposition) {
 
     auto SVD = svd (M);
     EXPECT_EQ (
-        approx (SVD.U * diag<6, 4, 4> (SVD.S) * transpose (SVD.V), M, 0.000001),
+        similar (
+            SVD.U * diag<6, 4, 4> (SVD.S) * transpose (SVD.V), M, 0.000001
+        ),
         true
     );
 
@@ -719,10 +721,10 @@ TEST (Matrix, SingularValueDecomposition) {
         4.491569094526893};
     EXPECT_EQ (norm (SVD.S - singular_values) < TOL * 1e2, true);
     EXPECT_EQ (
-        approx (SVD.U * transpose (SVD.U), identity<6>(), TOL * 1e1), true
+        similar (SVD.U * transpose (SVD.U), identity<6>(), TOL * 1e1), true
     );
     EXPECT_EQ (
-        approx (SVD.V * transpose (SVD.V), identity<4>(), TOL * 1e1), true
+        similar (SVD.V * transpose (SVD.V), identity<4>(), TOL * 1e1), true
     );
 }
 
