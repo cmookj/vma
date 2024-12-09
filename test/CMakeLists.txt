@@ -5,24 +5,28 @@ if (BUILD_TESTING)
 
     if(APPLE)
         find_library(ACCELERATE_LIBRARY Accelerate)
-        set(extra_libs ${ACCELERATE_LIBRARY})
+
+	target_link_libraries(blat_test PRIVATE 
+		blat
+		${ACCELERATE_LIBRARY}
+		GTest::gtest_main)
     elseif(UNIX AND NOT APPLE)
-        set(extra_libs 
-            libopenblas.a
-            libgfortran.a # libopenblas requires link to _gfortran_concat_string
-            )
+	# Specify the path to libgfortran.a 
+	set(LIBGFORTRAN_PATH /usr/lib/gcc/aarch64-linux-gnu/14)
+
+	target_link_libraries(blat_test PRIVATE 
+		blat
+		libopenblas.a
+		${LIBGFORTRAN_PATH}/libgfortran.a
+		GTest::gtest_main)
     endif()
 
     target_include_directories(blat_test PRIVATE 
         ${PROJECT_SOURCE_DIR}/blat/include
         )
 
-    target_link_libraries(blat_test PRIVATE 
-        blat
-        ${extra_libs}
-        GTest::gtest_main)
-
     include(GoogleTest)
+
     # Finds all the Google tests associated with the executable
     gtest_discover_tests(blat_test)
 endif()
