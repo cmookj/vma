@@ -430,9 +430,13 @@ TEST (Matrix, Multiplication) {
     };
     EXPECT_EQ (m12, m12_desired);
 
-    mat<4096, 4096> mm0;
-    mat<4096, 4096> mm1;
-    mat<4096, 4096> mm2;
+    /*mat<4096, 4096> mm0;*/
+    /*mat<4096, 4096> mm1;*/
+    /*mat<4096, 4096> mm2;*/
+
+    mat<16384, 16384> mm0;
+    mat<16384, 16384> mm1;
+    mat<16384, 16384> mm2;
 
     for (std::size_t i = 1; i <= mm0.count_rows(); ++i)
         for (std::size_t j = 1; j <= mm0.count_cols(); ++j)
