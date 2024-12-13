@@ -1,24 +1,38 @@
 # BUILD_TESTING variable is created by include(CTest)
-# It is set to ON by default
+# It is set to ON by defaultA
+option(USE_OPENBLAS "Link to OpenBLAS library" OFF)
+
 if (BUILD_TESTING)
   add_executable(blat_test test.cpp)
 
   if(APPLE)
-    # find_library(ACCELERATE_LIBRARY Accelerate)
+    if (USE_OPENBLAS)
+      message(STATUS "Link to OpenBLAS library")
 
-    set(LIBOPENBLAS_PATH /opt/homebrew/opt/openblas/lib)
-    set(LIBOMP_PATH /opt/homebrew/opt/libomp/lib)
-    set(LIBGFORTRAN_PATH /opt/homebrew/opt/gfortran/lib/gcc/current)
+      set(LIBOPENBLAS_PATH /opt/homebrew/opt/openblas/lib)
+      set(LIBOMP_PATH /opt/homebrew/opt/libomp/lib)
+      set(LIBGFORTRAN_PATH /opt/homebrew/opt/gfortran/lib/gcc/current)
 
-    target_link_libraries(blat_test PRIVATE 
-      blat
-      ${LIBOPENBLAS_PATH}/libopenblas.a
-      ${LIBOMP_PATH}/libomp.a
-      ${LIBGFORTRAN_PATH}/libgfortran.a
-      ${LIBGFORTRAN_PATH}/libgcc_s.1.1.dylib
-      ${LIBGFORTRAN_PATH}/libquadmath.dylib
-      # ${ACCELERATE_LIBRARY}
-      GTest::gtest_main)
+      target_link_libraries(blat_test PRIVATE 
+        blat
+        ${LIBOPENBLAS_PATH}/libopenblas.a
+        ${LIBOMP_PATH}/libomp.a
+        ${LIBGFORTRAN_PATH}/libgfortran.a
+        ${LIBGFORTRAN_PATH}/libgcc_s.1.1.dylib
+        ${LIBGFORTRAN_PATH}/libquadmath.dylib
+        GTest::gtest_main)
+    else()
+      message(STATUS "Link to Accelerate framework")
+
+      find_library(ACCELERATE_LIBRARY Accelerate)
+
+      target_link_libraries(blat_test PRIVATE 
+        blat
+        ${ACCELERATE_LIBRARY}
+        GTest::gtest_main)
+    endif()
+
+
 
   elseif(UNIX AND NOT APPLE)
     # Specify the path to libgfortran.a 
