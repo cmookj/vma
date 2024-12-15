@@ -14,11 +14,8 @@
 #include <cmath>
 #include <complex>
 #include <cstring>  // for memcpy
-// #include <exception>
 #include <functional>
 #include <initializer_list>
-// #include <iomanip>
-// #include <iostream>
 #include <limits>
 #include <memory>
 #include <numeric>
@@ -33,9 +30,7 @@
 #define ACCELERATE_NEW_LAPACK
 // #define ACCELERATE_LAPACK_ILP64
 #include <Accelerate/Accelerate.h>
-/*using integer_t = __CLPK_integer;*/
-/*using real_t    = __CLPK_doublereal;*/
-using integer_t = int;
+using integer_t = __LAPACK_int;
 using real_t    = double;
 #endif
 
