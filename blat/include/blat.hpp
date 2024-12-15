@@ -57,22 +57,30 @@ using real_t    = doublereal;
 using integer_t = integer;
 using real_t    = doublereal;
 
+// clang-format off
 extern "C" {
 extern void
 dgetrf_ (const int*, const int*, double*, const int*, int*, int*);
 
 extern int
-dgesdd_ (char*, integer*, integer*, doublereal*, integer*, doublereal*, doublereal*, integer*, doublereal*, integer*, doublereal*, integer*, integer*, integer*);
+dgesdd_ (char*, integer*, integer*, doublereal*, integer*, doublereal*, 
+         doublereal*, integer*, doublereal*, integer*, doublereal*, integer*, 
+         integer*, integer*);
 
 extern int
-dgetri_ (integer*, doublereal*, integer*, integer*, doublereal*, integer*, integer*);
+dgetri_ (integer*, doublereal*, integer*, integer*, doublereal*, integer*, 
+         integer*);
 
 extern int
-dsyev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*, integer*, integer*);
+dsyev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*, 
+        integer*, integer*);
 
 extern int
-dgeev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*, doublereal*, integer*, doublereal*, integer*, doublereal*, integer*, integer*);
+dgeev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*, 
+        doublereal*, integer*, doublereal*, integer*, doublereal*, integer*, 
+        integer*);
 }
+// clang-format on
 
 #endif
 
