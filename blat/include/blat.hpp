@@ -14,11 +14,8 @@
 #include <cmath>
 #include <complex>
 #include <cstring>  // for memcpy
-#include <exception>
 #include <functional>
 #include <initializer_list>
-#include <iomanip>
-#include <iostream>
 #include <limits>
 #include <memory>
 #include <numeric>
@@ -30,9 +27,11 @@
 #include <vector>
 
 #if defined(__APPLE__)
+#define ACCELERATE_NEW_LAPACK
+// #define ACCELERATE_LAPACK_ILP64
 #include <Accelerate/Accelerate.h>
-using integer_t = __CLPK_integer;
-using real_t    = __CLPK_doublereal;
+using integer_t = __LAPACK_int;
+using real_t    = double;
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -913,12 +912,12 @@ public:
           DIM_ROWS,
           DIM_COLS,
           DIM_COLS,
-          1.,
+          std::complex<double>{1., 0.},
           _elem.data(),
           DIM_ROWS,
           m.data(),
           DIM_COLS,
-          0.,
+          std::complex<double>{0., 0.},
           elm.data(),
           DIM_ROWS
       );
@@ -1280,8 +1279,8 @@ operator* (const mat<DIM_ROWS, DIM, T>& m1, const mat<DIM, DIM_COLS, T>& m2) {
         DIM_ROWS
     );
   else if constexpr (std::is_same_v<T, complex_t>) {
-    double alpha{1.0};
-    double beta{0.};
+    std::complex<double> alpha{1., 0.};
+    std::complex<double> beta{0., 0.};
     cblas_zgemm (
         CblasColMajor,
         CblasNoTrans,
@@ -1330,8 +1329,8 @@ operator* (const mat<DIM_ROWS, DIM_COLS, T>& m, const vec<DIM_COLS, T>& v) {
     );
 
   else if constexpr (std::is_same_v<T, complex_t>) {
-    double alpha{1.0};
-    double beta{0.};
+    std::complex<double> alpha{1., 0};
+    std::complex<double> beta{0., 0.};
     cblas_zgemm (
         CblasColMajor,
         CblasNoTrans,
@@ -1382,8 +1381,8 @@ operator* (const vec<DIM_ROWS, T>& v, const mat<DIM_ROWS, DIM_COLS, T>& m) {
         1
     );
   else if constexpr (std::is_same_v<T, complex_t>) {
-    double alpha{1.0};
-    double beta{0.};
+    std::complex<double> alpha{1., 0.};
+    std::complex<double> beta{0., 0.};
     cblas_zgemm (
         CblasColMajor,
         CblasNoTrans,
