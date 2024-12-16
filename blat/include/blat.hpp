@@ -26,6 +26,8 @@
 #include <utility>
 #include <vector>
 
+#include "../internal/concurrency.hpp"
+
 #if defined(__APPLE__)
 #define ACCELERATE_NEW_LAPACK
 // #define ACCELERATE_LAPACK_ILP64
@@ -57,22 +59,30 @@ using real_t    = doublereal;
 using integer_t = integer;
 using real_t    = doublereal;
 
+// clang-format off
 extern "C" {
 extern void
 dgetrf_ (const int*, const int*, double*, const int*, int*, int*);
 
 extern int
-dgesdd_ (char*, integer*, integer*, doublereal*, integer*, doublereal*, doublereal*, integer*, doublereal*, integer*, doublereal*, integer*, integer*, integer*);
+dgesdd_ (char*, integer*, integer*, doublereal*, integer*, doublereal*, 
+         doublereal*, integer*, doublereal*, integer*, doublereal*, integer*, 
+         integer*, integer*);
 
 extern int
-dgetri_ (integer*, doublereal*, integer*, integer*, doublereal*, integer*, integer*);
+dgetri_ (integer*, doublereal*, integer*, integer*, doublereal*, integer*, 
+         integer*);
 
 extern int
-dsyev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*, integer*, integer*);
+dsyev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*, 
+        integer*, integer*);
 
 extern int
-dgeev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*, doublereal*, integer*, doublereal*, integer*, doublereal*, integer*, integer*);
+dgeev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*, 
+        doublereal*, integer*, doublereal*, integer*, doublereal*, integer*, 
+        integer*);
 }
+// clang-format on
 
 #endif
 
@@ -1138,9 +1148,24 @@ mat<DIM_COLS, DIM_ROWS, T>
 transpose (const mat<DIM_ROWS, DIM_COLS, T>& m) {
   mat<DIM_COLS, DIM_ROWS, T> t{};
 
-  for (size_t j = 0; j < DIM_COLS; ++j)
-    for (size_t i = 0; i < DIM_ROWS; ++i)
-      t.elem()[i * DIM_COLS + j] = m.elem()[j * DIM_ROWS + i];
+  using namespace gpw::concurrency;
+
+  thread_pool tp;
+
+  // Transpose each column independently, in parallel.
+  for (int j = 0; j < DIM_COLS; ++j) {
+    tp.queue_job ([j, &m, &t] () {
+      for (size_t i = 0; i < DIM_ROWS; ++i)
+        t.elem()[i * DIM_COLS + j] = m.elem()[j * DIM_ROWS + i];
+    });
+  }
+
+  tp.start();
+
+  while (tp.busy())
+    ;
+
+  tp.stop();
 
   return t;
 }
@@ -1816,4 +1841,5 @@ norm_frobenius (const mat<DIM_ROWS, DIM_COLS>& M) {
 }
 
 }  // namespace gpw::blat
+
 #endif
