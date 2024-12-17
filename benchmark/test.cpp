@@ -166,8 +166,8 @@ heavy_multiplication (mat<sz, sz>& mm0, mat<sz, sz>& mm1, mat<sz, sz>& mm2) {
   if (mm0.count_cols() != mm2.count_cols()) print_message ("[Error] dimension mismatch");
 
   const std::size_t p{mm0.count_cols()};
-  for (std::size_t i = 1; i <= mm0.count_rows(); i = i + 100)
-    for (std::size_t j = 1; j <= mm0.count_cols(); j = j + 100)
+  for (std::size_t i = 1; i <= mm0.count_rows(); i = i << 1)
+    for (std::size_t j = 1; j <= mm0.count_cols(); j = j << 1)
       if (abs (mm0 (i, j) - i * p * (p + 1) / 2) > 0.000001) {
         print_message ("[Error] incorrect computation in multiplication #1");
         return 0.0;
@@ -178,8 +178,8 @@ heavy_multiplication (mat<sz, sz>& mm0, mat<sz, sz>& mm1, mat<sz, sz>& mm2) {
   auto        time_2 = measure_time (multiply_matrices<sz>, mm12, mm1, mm2);
 
   // Verify
-  for (std::size_t i = 1; i <= mm12.count_rows(); i = i + 100)
-    for (std::size_t j = 1; j <= mm12.count_cols(); j = j + 100)
+  for (std::size_t i = 1; i <= mm12.count_rows(); i = i << 1)
+    for (std::size_t j = 1; j <= mm12.count_cols(); j = j << 1)
       if (abs (mm12 (i, j) - mm1.count_cols() * i * j) > 0.000001) {
         print_message ("[Error] incorrect computation in multiplication #2");
         return 0.0;
@@ -262,8 +262,8 @@ test_heavy_matrix_multiplication (const size_t count) {
 
 int
 main (int argc, const char* argv[]) {
-  // test_heavy_matrix_transpose (10);
-  // std::cout << "\n";
+  test_heavy_matrix_transpose (10);
+  std::cout << "\n";
   test_heavy_matrix_multiplication (10);
   std::cout << "\n";
 
