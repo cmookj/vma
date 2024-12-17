@@ -20,6 +20,7 @@ add_executable(benchmark test.cpp)
 if(APPLE)
   if (USE_OPENBLAS)
     message(STATUS "Link to OpenBLAS library")
+    add_definitions(-DUSE_OPENBLAS)
 
     set(LIBOPENBLAS_PATH /opt/homebrew/opt/openblas/lib)
     set(LIBOMP_PATH /opt/homebrew/opt/libomp/lib)

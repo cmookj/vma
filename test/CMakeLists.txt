@@ -9,6 +9,8 @@ if (BUILD_TESTING)
     if (USE_OPENBLAS)
       message(STATUS "Link to OpenBLAS library")
 
+      add_definitions(-DUSE_OPENBLAS)
+
       set(LIBOPENBLAS_PATH /opt/homebrew/opt/openblas/lib)
       set(LIBOMP_PATH /opt/homebrew/opt/libomp/lib)
       set(LIBGFORTRAN_PATH /opt/homebrew/opt/gfortran/lib/gcc/current)

@@ -29,13 +29,17 @@
 #include "../internal/concurrency.hpp"
 
 #if defined(__APPLE__)
+#if defined(USE_OPENBLAS)
+#include <Accelerate/Accelerate.h>
+using integer_t = __CLPK_integer;
+using real_t    = __CLPK_doublereal;
+#else
 #define ACCELERATE_NEW_LAPACK
 // #define ACCELERATE_LAPACK_ILP64
 #include <Accelerate/Accelerate.h>
-// using integer_t = __CLPK_integer;
-// using real_t    = __CLPK_doublereal;
 using integer_t = __LAPACK_int;
 using real_t    = double;
+#endif
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
