@@ -1,4 +1,4 @@
-# Yet Another Simple Linear Algebra Library
+# Vector Matrix Arithmetic Library
 
 This is a very simple linear algebra library.
 Currently, it supports real/complex vectors and matrices.
@@ -20,7 +20,7 @@ sudo apt install -y libf2c2-dev libatlas-base-dev libgfortran-11-dev
 
 ## License
 
-Copyright (C) 2022 by Changmook Chun <cmookj_at_duck.com>
+Copyright (C) 2022-2025 by Changmook Chun <cmookj_at_duck.com>
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted.
