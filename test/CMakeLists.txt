@@ -3,7 +3,7 @@
 option(USE_OPENBLAS "Link to OpenBLAS library" OFF)
 
 if (BUILD_TESTING)
-  add_executable(blat_test test.cpp)
+  add_executable(vma_test test.cpp)
 
   if(APPLE)
     if (USE_OPENBLAS)
@@ -15,8 +15,8 @@ if (BUILD_TESTING)
       set(LIBOMP_PATH /opt/homebrew/opt/libomp/lib)
       set(LIBGFORTRAN_PATH /opt/homebrew/opt/gfortran/lib/gcc/current)
 
-      target_link_libraries(blat_test PRIVATE 
-        blat
+      target_link_libraries(vma_test PRIVATE 
+        vmalib
         ${LIBOPENBLAS_PATH}/libopenblas.a
         ${LIBOMP_PATH}/libomp.a
         ${LIBGFORTRAN_PATH}/libgfortran.a
@@ -28,31 +28,29 @@ if (BUILD_TESTING)
 
       find_library(ACCELERATE_LIBRARY Accelerate)
 
-      target_link_libraries(blat_test PRIVATE 
-        blat
+      target_link_libraries(vma_test PRIVATE 
+        vmalib
         ${ACCELERATE_LIBRARY}
         GTest::gtest_main)
     endif()
-
-
 
   elseif(UNIX AND NOT APPLE)
     # Specify the path to libgfortran.a 
     set(LIBGFORTRAN_PATH /usr/lib/gcc/aarch64-linux-gnu/14)
 
-    target_link_libraries(blat_test PRIVATE 
-      blat
-      libopenblas.a
+    target_link_libraries(vma_test PRIVATE 
+      vmalib
+      libblas.a
       ${LIBGFORTRAN_PATH}/libgfortran.a
       GTest::gtest_main)
   endif()
 
-  target_include_directories(blat_test PRIVATE 
-    ${PROJECT_SOURCE_DIR}/blat/include
+  target_include_directories(vma_test PRIVATE 
+    ${PROJECT_SOURCE_DIR}/vma/include
     )
 
   include(GoogleTest)
 
   # Finds all the Google tests associated with the executable
-  gtest_discover_tests(blat_test)
+  gtest_discover_tests(vma_test)
 endif()
