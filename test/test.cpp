@@ -754,6 +754,17 @@ TEST (Matrix, Inversion) {
     for (std::size_t i = 1; i <= m3.count_rows(); ++i)
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
             EXPECT_EQ (std::fabs (m3 (i, j) - (i == j ? 1. : 0.)) < TOL * 1e2, true);
+
+    mat<3, 3> m4{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+    bool m4_invertible = true;
+    try {
+        auto m4_inv = inv (m4);
+    }
+    catch (...) {
+        m4_invertible = false;
+    }
+
+    EXPECT_FALSE (m4_invertible);
 }
 
 TEST (Matrix, SingularValueDecomposition) {

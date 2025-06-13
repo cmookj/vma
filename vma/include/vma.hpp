@@ -1549,11 +1549,15 @@ inv (const mat<DIM, DIM>& m) {
 
     dgetrf_ (&n, &n, result.data(), &n, IPIV.get(), &INFO);
 
+    #if false
     double d = 1.;
     for (size_t i = 0; i < DIM; ++i)
         d *= result.elem()[i * DIM + i];
 
     if (std::abs (d) < TOL) throw std::runtime_error{"The mat is singular."};
+    #endif
+
+    if (INFO > 0) throw std::runtime_error{"The mat is singular."};
 
     n              = static_cast<integer_t> (DIM);
     integer_t prod = static_cast<integer_t> (DIM * DIM);
@@ -1850,6 +1854,22 @@ double
 norm_frobenius (const mat<DIM_ROWS, DIM_COLS>& M) {
     return std::sqrt (tr (transpose (M) * M));
 }
+
+/**
+ * Special Cases
+ */
+
+double
+det (const mat<2, 2>& M);
+
+mat<2, 2>
+inv (const mat<2, 2>& M);
+
+double
+det (const mat<3, 3>& M);
+
+mat<3, 3>
+inv (const mat<3, 3>& M);
 
 }  // namespace gpw::vma
 
