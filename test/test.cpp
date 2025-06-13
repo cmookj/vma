@@ -767,6 +767,17 @@ TEST (Matrix, Inversion) {
     EXPECT_FALSE (m4_invertible);
 }
 
+TEST (Matrix, ConditionNumber) {
+    mat<3, 3> m0{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+    double cond_m0 = cond(m0);
+    EXPECT_NEAR(cond_m0, 25931300179480048.0000, 10.);
+
+    mat<2, 4> m1{{1, 2, 3, 4}, {1, 3, 5, 7}};
+    double cond_m1 = cond(m1);
+    EXPECT_NEAR(cond_m1, 25.451885122913790127086031, 1e-12);
+}
+
+
 TEST (Matrix, SingularValueDecomposition) {
     mat<6, 4> M{
         {7.52,  -1.10, -7.95, 1.08 },

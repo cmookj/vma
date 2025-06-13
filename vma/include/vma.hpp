@@ -287,6 +287,12 @@ template <size_t DIM, typename T = double> class vec {
         });
         return *this;
     }
+
+    // Sort elements in non-descending order
+    void
+    sort () {
+        std::sort (_elem.begin(), _elem.end());
+    }
 };
 
 /**
@@ -1666,6 +1672,19 @@ svd (const mat<DIM_ROWS, DIM_COLS>& M) {
     return svd_t<DIM_ROWS, DIM_COLS>{
         U, vec<std::min (DIM_ROWS, DIM_COLS)> (s.get()), transpose (Vt)
     };
+}
+
+/**
+ @brief Condition number of matrix 
+ */
+template <size_t DIM_ROWS, size_t DIM_COLS>
+double 
+cond (const mat<DIM_ROWS, DIM_COLS>& M) {
+    auto svd_M = svd(M);
+    svd_M.S.sort();
+    if (svd_M.S[0] < TOL) return std::numeric_limits<double>::infinity();
+
+    return svd_M.S[std::min(DIM_ROWS, DIM_COLS) - 1] / svd_M.S[0];
 }
 
 /**
