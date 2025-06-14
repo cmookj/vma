@@ -1555,13 +1555,13 @@ inv (const mat<DIM, DIM>& m) {
 
     dgetrf_ (&n, &n, result.data(), &n, IPIV.get(), &INFO);
 
-    #if false
+#if false
     double d = 1.;
     for (size_t i = 0; i < DIM; ++i)
         d *= result.elem()[i * DIM + i];
 
     if (std::abs (d) < TOL) throw std::runtime_error{"The mat is singular."};
-    #endif
+#endif
 
     if (INFO > 0) {
         std::stringstream strm;
@@ -1570,7 +1570,8 @@ inv (const mat<DIM, DIM>& m) {
     }
     if (INFO < 0) {
         std::stringstream strm;
-        strm << "DGETRF returned an error (INFO < 0), argument " << -INFO << " had an illegal value."; 
+        strm << "DGETRF returned an error (INFO < 0), argument " << -INFO
+             << " had an illegal value.";
         throw std::runtime_error{strm.str()};
     }
 
@@ -1684,16 +1685,16 @@ svd (const mat<DIM_ROWS, DIM_COLS>& M) {
 }
 
 /**
- @brief Condition number of matrix 
+ @brief Condition number of matrix
  */
 template <size_t DIM_ROWS, size_t DIM_COLS>
-double 
+double
 cond (const mat<DIM_ROWS, DIM_COLS>& M) {
-    auto svd_M = svd(M);
+    auto svd_M = svd (M);
     svd_M.S.sort();
     if (svd_M.S[0] < TOL) return std::numeric_limits<double>::infinity();
 
-    return svd_M.S[std::min(DIM_ROWS, DIM_COLS) - 1] / svd_M.S[0];
+    return svd_M.S[std::min (DIM_ROWS, DIM_COLS) - 1] / svd_M.S[0];
 }
 
 /**
