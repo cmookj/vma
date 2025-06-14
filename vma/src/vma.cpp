@@ -18,7 +18,11 @@ mat<2, 2>
 gpw::vma::inv (const mat<2, 2>& M) {
     double dt = det (M);
 
-    if (dt < TOL) throw (std::runtime_error{"matrix not invertible"});
+    if (std::abs(dt) < TOL) {
+        std::stringstream strm;
+        strm << "2 x 2 Matrix not invertible, Determinant = " << dt;
+        throw (std::runtime_error{strm.str()});
+    }
 
     return mat<2, 2>{
                {M (2,  2), -M (1, 2)},
@@ -48,7 +52,11 @@ mat<3, 3>
 gpw::vma::inv (const mat<3, 3>& M) {
 
     double dt = det (M);
-    if (dt < TOL) throw (std::runtime_error{"matrix not invertible"});
+    if (std::abs(dt) < TOL) {
+        std::stringstream strm;
+        strm << "2 x 2 Matrix not invertible, Determinant = " << dt;
+        throw (std::runtime_error{strm.str()});
+    }
 
     double a = M (1, 1);
     double b = M (1, 2);

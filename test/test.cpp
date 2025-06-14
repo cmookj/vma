@@ -787,7 +787,7 @@ TEST (Matrix, ConditionNumber) {
         EXPECT_NEAR(m2_inv(2, 1), 97.00000000000034106051316484808922, 1e-10);
         EXPECT_NEAR(m2_inv(2, 2), -41.00000000000014210854715202003717, 1e-10);
     }
-    catch (...) {}
+    catch (std::runtime_error e) { std::cout << e.what() << '\n'; }
 
     mat<2, 2> m3 {{4.1, 2.8}, {9.671, 6.608}};
     try {
@@ -797,7 +797,7 @@ TEST (Matrix, ConditionNumber) {
         EXPECT_NEAR(m3_inv(2, 1), -690.78571428574502988340100273489952, 1e-10);
         EXPECT_NEAR(m3_inv(2, 2), 292.85714285715590676772990263998508, 1e-10);
     }
-    catch (...) {}
+    catch (std::runtime_error e) { std::cout << e.what() << '\n'; }
 }
 
 

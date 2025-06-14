@@ -1563,7 +1563,16 @@ inv (const mat<DIM, DIM>& m) {
     if (std::abs (d) < TOL) throw std::runtime_error{"The mat is singular."};
     #endif
 
-    if (INFO > 0) throw std::runtime_error{"The mat is singular."};
+    if (INFO > 0) {
+        std::stringstream strm;
+        strm << "The mat is singular, INFO = " << INFO;
+        throw std::runtime_error{strm.str()};
+    }
+    if (INFO < 0) {
+        std::stringstream strm;
+        strm << "DGETRF returned an error (INFO < 0), argument " << -INFO << " had an illegal value."; 
+        throw std::runtime_error{strm.str()};
+    }
 
     n              = static_cast<integer_t> (DIM);
     integer_t prod = static_cast<integer_t> (DIM * DIM);
