@@ -287,6 +287,12 @@ template <size_t DIM, typename T = double> class vec {
         });
         return *this;
     }
+
+    // Sort elements in non-descending order
+    void
+    sort () {
+        std::sort (_elem.begin(), _elem.end());
+    }
 };
 
 /**
@@ -1549,11 +1555,24 @@ inv (const mat<DIM, DIM>& m) {
 
     dgetrf_ (&n, &n, result.data(), &n, IPIV.get(), &INFO);
 
+    #if false
     double d = 1.;
     for (size_t i = 0; i < DIM; ++i)
         d *= result.elem()[i * DIM + i];
 
     if (std::abs (d) < TOL) throw std::runtime_error{"The mat is singular."};
+    #endif
+
+    if (INFO > 0) {
+        std::stringstream strm;
+        strm << "The mat is singular, INFO = " << INFO;
+        throw std::runtime_error{strm.str()};
+    }
+    if (INFO < 0) {
+        std::stringstream strm;
+        strm << "DGETRF returned an error (INFO < 0), argument " << -INFO << " had an illegal value."; 
+        throw std::runtime_error{strm.str()};
+    }
 
     n              = static_cast<integer_t> (DIM);
     integer_t prod = static_cast<integer_t> (DIM * DIM);
@@ -1662,6 +1681,19 @@ svd (const mat<DIM_ROWS, DIM_COLS>& M) {
     return svd_t<DIM_ROWS, DIM_COLS>{
         U, vec<std::min (DIM_ROWS, DIM_COLS)> (s.get()), transpose (Vt)
     };
+}
+
+/**
+ @brief Condition number of matrix 
+ */
+template <size_t DIM_ROWS, size_t DIM_COLS>
+double 
+cond (const mat<DIM_ROWS, DIM_COLS>& M) {
+    auto svd_M = svd(M);
+    svd_M.S.sort();
+    if (svd_M.S[0] < TOL) return std::numeric_limits<double>::infinity();
+
+    return svd_M.S[std::min(DIM_ROWS, DIM_COLS) - 1] / svd_M.S[0];
 }
 
 /**
@@ -1850,6 +1882,22 @@ double
 norm_frobenius (const mat<DIM_ROWS, DIM_COLS>& M) {
     return std::sqrt (tr (transpose (M) * M));
 }
+
+/**
+ * Special Cases
+ */
+
+double
+det (const mat<2, 2>& M);
+
+mat<2, 2>
+inv (const mat<2, 2>& M);
+
+double
+det (const mat<3, 3>& M);
+
+mat<3, 3>
+inv (const mat<3, 3>& M);
 
 }  // namespace gpw::vma
 

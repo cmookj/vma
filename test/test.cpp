@@ -754,7 +754,46 @@ TEST (Matrix, Inversion) {
     for (std::size_t i = 1; i <= m3.count_rows(); ++i)
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
             EXPECT_EQ (std::fabs (m3 (i, j) - (i == j ? 1. : 0.)) < TOL * 1e2, true);
+
+    mat<3, 3> m4{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+    bool m4_invertible = true;
+    try {
+        auto m4_inv = inv (m4);
+    }
+    catch (...) {
+        m4_invertible = false;
+    }
+
+    EXPECT_FALSE (m4_invertible);
 }
+
+TEST (Matrix, ConditionNumber) {
+    mat<3, 3> m0{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+    double cond_m0 = cond(m0);
+    EXPECT_NEAR(cond_m0, 25931300179480048.0000, 10.);
+
+    mat<2, 4> m1{{1, 2, 3, 4}, {1, 3, 5, 7}};
+    double cond_m1 = cond(m1);
+    EXPECT_NEAR(cond_m1, 25.451885122913790127086031, 1e-10);
+
+    mat<2, 2> m2 {{4.1, 2.8}, {9.7, 6.6}};
+    double cond_m2 = cond(m2);
+    EXPECT_NEAR(cond_m2, 1622.9993838565622, 1e-12);
+
+    auto m2_inv = inv(m2);
+    EXPECT_NEAR(m2_inv(1, 1), -66.00000000000022737367544323205948, 1e-10);
+    EXPECT_NEAR(m2_inv(1, 2), 28.00000000000009947598300641402602, 1e-10);
+    EXPECT_NEAR(m2_inv(2, 1), 97.00000000000034106051316484808922, 1e-10);
+    EXPECT_NEAR(m2_inv(2, 2), -41.00000000000014210854715202003717, 1e-10);
+
+    mat<2, 2> m3 {{4.1, 2.8}, {9.671, 6.608}};
+    auto m3_inv = inv(m3);
+    EXPECT_NEAR(m3_inv(1, 1), 472.00000000002108890839735977351665, 1e-10);
+    EXPECT_NEAR(m3_inv(1, 2), -200.00000000000892441676114685833454, 1e-10);
+    EXPECT_NEAR(m3_inv(2, 1), -690.78571428574502988340100273489952, 1e-10);
+    EXPECT_NEAR(m3_inv(2, 2), 292.85714285715590676772990263998508, 1e-10);
+}
+
 
 TEST (Matrix, SingularValueDecomposition) {
     mat<6, 4> M{
