@@ -20,7 +20,7 @@ gpw::vma::inv (const mat<2, 2>& M) {
 
     if (std::abs(dt) < TOL) {
         std::stringstream strm;
-        strm << "2 x 2 Matrix not invertible, Determinant = " << dt;
+        strm << "Matrix not invertible, Determinant = " << dt;
         throw (std::runtime_error{strm.str()});
     }
 
@@ -54,7 +54,7 @@ gpw::vma::inv (const mat<3, 3>& M) {
     double dt = det (M);
     if (std::abs(dt) < TOL) {
         std::stringstream strm;
-        strm << "2 x 2 Matrix not invertible, Determinant = " << dt;
+        strm << "Matrix not invertible, Determinant = " << dt;
         throw (std::runtime_error{strm.str()});
     }
 
