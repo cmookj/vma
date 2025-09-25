@@ -26,7 +26,7 @@
 #include <utility>
 #include <vector>
 
-#include "../internal/concurrency.hpp"
+#include "toolbox/concurrency.hpp"
 
 #if defined(__APPLE__)
 #if defined(USE_OPENBLAS)

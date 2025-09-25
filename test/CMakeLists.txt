@@ -16,7 +16,7 @@ if (BUILD_TESTING)
       set(LIBGFORTRAN_PATH /opt/homebrew/opt/gfortran/lib/gcc/current)
 
       target_link_libraries(vma_test PRIVATE 
-        vmalib
+        vma
         ${LIBOPENBLAS_PATH}/libopenblas.a
         ${LIBOMP_PATH}/libomp.a
         ${LIBGFORTRAN_PATH}/libgfortran.a
@@ -29,7 +29,7 @@ if (BUILD_TESTING)
       find_library(ACCELERATE_LIBRARY Accelerate)
 
       target_link_libraries(vma_test PRIVATE 
-        vmalib
+        vma
         ${ACCELERATE_LIBRARY}
         GTest::gtest_main)
     endif()
@@ -39,7 +39,7 @@ if (BUILD_TESTING)
     set(LIBGFORTRAN_PATH /usr/lib/gcc/aarch64-linux-gnu/14)
 
     target_link_libraries(vma_test PRIVATE 
-      vmalib
+      vma
       libblas.a
       ${LIBGFORTRAN_PATH}/libgfortran.a
       GTest::gtest_main)
