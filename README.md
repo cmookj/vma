@@ -8,7 +8,7 @@ The test cases in test/TestLinearAlgebra.mm shows how to use the library (tentat
 
 ### macOS
 
-Tested on macOS Ventura 13.1
+Tested on macOS Ventura 13.1 through macOS Sequoia 15.7.1
 
 ### Ubuntu Linux
 
