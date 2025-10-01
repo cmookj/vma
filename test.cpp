@@ -281,7 +281,7 @@ TEST (Matrix, CreationIndexing) {
     EXPECT_EQ (m21.count_cols(), 3);
     EXPECT_EQ (m21.elem(), el00);
 
-    auto m3 = identity<10>();
+    auto m3 = gpw::vma::identity<10>();
     for (std::size_t i = 1; i <= m3.count_rows(); ++i)
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
             EXPECT_FLOAT_EQ (m3 (i, j), (i == j ? 1. : 0.));
@@ -677,7 +677,7 @@ TEST (Matrix, Manipulation) {
 }
 
 TEST (Matrix, MatrixVectorMultiplication) {
-    auto m1 = identity<3>();
+    auto m1 = gpw::vma::identity<3>();
     auto v1 = vec<3>{1.};
 
     auto v11 = m1 * v1;
@@ -688,7 +688,7 @@ TEST (Matrix, MatrixVectorMultiplication) {
 }
 
 TEST (Matrix, Trace) {
-    auto m = identity<10>();
+    auto m = gpw::vma::identity<10>();
     EXPECT_EQ (tr (m), 10.);
 
     mat<2, 2> m1{
@@ -714,7 +714,7 @@ TEST (Matrix, Trace) {
 }
 
 TEST (Matrix, Determinant) {
-    auto m = identity<10>();
+    auto m = gpw::vma::identity<10>();
     EXPECT_EQ (det (m), 1.);
 
     mat<2, 2> m1{
@@ -755,12 +755,15 @@ TEST (Matrix, Inversion) {
         for (std::size_t j = 1; j <= m3.count_cols(); ++j)
             EXPECT_EQ (std::fabs (m3 (i, j) - (i == j ? 1. : 0.)) < TOL * 1e2, true);
 
-    mat<3, 3> m4{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+    mat<3, 3> m4{
+        {1, 2, 3},
+        {2, 3, 4},
+        {3, 4, 5}
+    };
     bool m4_invertible = true;
     try {
         auto m4_inv = inv (m4);
-    }
-    catch (...) {
+    } catch (...) {
         m4_invertible = false;
     }
 
@@ -768,32 +771,44 @@ TEST (Matrix, Inversion) {
 }
 
 TEST (Matrix, ConditionNumber) {
-    mat<3, 3> m0{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
-    double cond_m0 = cond(m0);
-    EXPECT_NEAR(cond_m0, 25931300179480048.0000, 10.);
+    mat<3, 3> m0{
+        {1, 2, 3},
+        {2, 3, 4},
+        {3, 4, 5}
+    };
+    double cond_m0 = cond (m0);
+    EXPECT_NEAR (cond_m0, 25931300179480048.0000, 10.);
 
-    mat<2, 4> m1{{1, 2, 3, 4}, {1, 3, 5, 7}};
-    double cond_m1 = cond(m1);
-    EXPECT_NEAR(cond_m1, 25.451885122913790127086031, 1e-10);
+    mat<2, 4> m1{
+        {1, 2, 3, 4},
+        {1, 3, 5, 7}
+    };
+    double cond_m1 = cond (m1);
+    EXPECT_NEAR (cond_m1, 25.451885122913790127086031, 1e-10);
 
-    mat<2, 2> m2 {{4.1, 2.8}, {9.7, 6.6}};
-    double cond_m2 = cond(m2);
-    EXPECT_NEAR(cond_m2, 1622.9993838565622, 1e-12);
+    mat<2, 2> m2{
+        {4.1, 2.8},
+        {9.7, 6.6}
+    };
+    double cond_m2 = cond (m2);
+    EXPECT_NEAR (cond_m2, 1622.9993838565622, 1e-12);
 
-    auto m2_inv = inv(m2);
-    EXPECT_NEAR(m2_inv(1, 1), -66.00000000000022737367544323205948, 1e-10);
-    EXPECT_NEAR(m2_inv(1, 2), 28.00000000000009947598300641402602, 1e-10);
-    EXPECT_NEAR(m2_inv(2, 1), 97.00000000000034106051316484808922, 1e-10);
-    EXPECT_NEAR(m2_inv(2, 2), -41.00000000000014210854715202003717, 1e-10);
+    auto m2_inv = inv (m2);
+    EXPECT_NEAR (m2_inv (1, 1), -66.00000000000022737367544323205948, 1e-10);
+    EXPECT_NEAR (m2_inv (1, 2), 28.00000000000009947598300641402602, 1e-10);
+    EXPECT_NEAR (m2_inv (2, 1), 97.00000000000034106051316484808922, 1e-10);
+    EXPECT_NEAR (m2_inv (2, 2), -41.00000000000014210854715202003717, 1e-10);
 
-    mat<2, 2> m3 {{4.1, 2.8}, {9.671, 6.608}};
-    auto m3_inv = inv(m3);
-    EXPECT_NEAR(m3_inv(1, 1), 472.00000000002108890839735977351665, 1e-10);
-    EXPECT_NEAR(m3_inv(1, 2), -200.00000000000892441676114685833454, 1e-10);
-    EXPECT_NEAR(m3_inv(2, 1), -690.78571428574502988340100273489952, 1e-10);
-    EXPECT_NEAR(m3_inv(2, 2), 292.85714285715590676772990263998508, 1e-10);
+    mat<2, 2> m3{
+        {4.1,   2.8  },
+        {9.671, 6.608}
+    };
+    auto m3_inv = inv (m3);
+    EXPECT_NEAR (m3_inv (1, 1), 472.00000000002108890839735977351665, 1e-10);
+    EXPECT_NEAR (m3_inv (1, 2), -200.00000000000892441676114685833454, 1e-10);
+    EXPECT_NEAR (m3_inv (2, 1), -690.78571428574502988340100273489952, 1e-10);
+    EXPECT_NEAR (m3_inv (2, 2), 292.85714285715590676772990263998508, 1e-10);
 }
-
 
 TEST (Matrix, SingularValueDecomposition) {
     mat<6, 4> M{
@@ -844,8 +859,8 @@ TEST (Matrix, SingularValueDecomposition) {
         18.365978454889984, 13.629979679210999, 10.85333572722705, 4.491569094526893
     };
     EXPECT_EQ (norm (SVD.S - singular_values) < TOL * 1e2, true);
-    EXPECT_EQ (similar (SVD.U * transpose (SVD.U), identity<6>(), TOL * 1e1), true);
-    EXPECT_EQ (similar (SVD.V * transpose (SVD.V), identity<4>(), TOL * 1e1), true);
+    EXPECT_EQ (similar (SVD.U * transpose (SVD.U), gpw::vma::identity<6>(), TOL * 1e1), true);
+    EXPECT_EQ (similar (SVD.V * transpose (SVD.V), gpw::vma::identity<4>(), TOL * 1e1), true);
 }
 
 TEST (Matrix, Norm) {
