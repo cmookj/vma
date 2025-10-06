@@ -1,7 +1,9 @@
 .DS_Store
-.cache
 benchmark/xcode
 benchmark/result
-build
-Testing
 compile_commands.json
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-vma
+MODULE.bazel.lock
