@@ -5,7 +5,7 @@
 //  Created by Changmook Chun on 2022-12-15.
 //
 
-#include "vma.hpp"
+#include "vma.h"
 
 using namespace gpw::vma;
 
@@ -18,7 +18,7 @@ mat<2, 2>
 gpw::vma::inv (const mat<2, 2>& M) {
     double dt = det (M);
 
-    if (std::abs(dt) < TOL) {
+    if (std::abs (dt) < TOL) {
         std::stringstream strm;
         strm << "Matrix not invertible, Determinant = " << dt;
         throw (std::runtime_error{strm.str()});
@@ -52,7 +52,7 @@ mat<3, 3>
 gpw::vma::inv (const mat<3, 3>& M) {
 
     double dt = det (M);
-    if (std::abs(dt) < TOL) {
+    if (std::abs (dt) < TOL) {
         std::stringstream strm;
         strm << "Matrix not invertible, Determinant = " << dt;
         throw (std::runtime_error{strm.str()});

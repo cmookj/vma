@@ -5,7 +5,7 @@
 //  Created by Changmook Chun on 2022-12-22.
 //
 
-#include "vma.hpp"
+#include "core/vma.h"
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <iostream>
