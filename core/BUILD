@@ -6,5 +6,6 @@ cc_library(
     hdrs = ["vma.h"],
     copts = ["-framework", "Accelerate"],
     linkopts = ["-framework", "Accelerate"],
-    visibility = ["//test:__pkg__"],
+    # visibility = ["//test:__pkg__"],
+    visibility = ["//visibility:public"],
 )
