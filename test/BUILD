@@ -10,5 +10,9 @@ cc_test(
         "@googletest//:gtest_main",
         "//core:vma",
     ],
-    linkopts = ["-framework", "Accelerate"],
+    linkopts = select({
+        "@platforms//os:macos": ["-framework", "Accelerate"],
+        "@platforms//os:linux": ["-lopenblas", "-lgfortran"],
+        "//conditions:default": [],
+    }),
 )
