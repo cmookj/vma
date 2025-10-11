@@ -10,7 +10,7 @@ Tested on macOS Ventura 13.1 throught macOS SEquoia 15.7.1.
 
 ### Ubuntu Linux
 
-Tested on Ubuntu 22.04 in Apple's Container CLI tool (ARM 64), which requires
+Tested on Ubuntu 22.04 in Apple's [Container CLI tool](https://github.com/apple/container), which requires
 ```shell
 sudo apt install -y libf2c2-dev libatlas-base-dev libgfortran-11-dev
 ```
