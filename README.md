@@ -1,6 +1,7 @@
 # Vector Matrix Arithmetic Library
 
-This is a very simple linear algebra library.  Currently, it supports real/complex vectors and matrices.
+This is a very simple linear algebra library.  Currently, it supports
+real/complex vectors and matrices.
 
 ## System Requirement
 
@@ -10,10 +11,16 @@ Tested on macOS Ventura 13.1 throught macOS SEquoia 15.7.1.
 
 ### Ubuntu Linux
 
-Tested on Ubuntu 22.04 in Apple's [Container CLI tool](https://github.com/apple/container), which requires
+Tested on Ubuntu 22.04 in Apple's [Container CLI tool](https://github.com/apple/container),
+which requires
 ```shell
-sudo apt install -y libf2c2-dev libatlas-base-dev libgfortran-11-dev
+sudo apt install -y libf2c-dev libopenblas-dev libgfortran-13-dev
 ```
+
+**Note**: The test for condition number is currently failing in Ubuntu 22.04 with
+the libraries listed above.  The ground-gruth condition numbers are calculated
+using Python with numpy running on macOS, and the results are verified in macOS
+(Using Apple's Accelerate framework).
 
 ## Test
 
