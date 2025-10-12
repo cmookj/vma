@@ -115,7 +115,6 @@ using std::size_t;
 // =============================================================================
 //                                                                  Enumerations
 // =============================================================================
-#pragma mark - Enumerations
 
 // Format specification to generate string representation
 enum class output_fmt { sht, nml, ext, sci, scx };
@@ -128,14 +127,12 @@ using complex_t = std::complex<double>;
 // =============================================================================
 //                                                                     Utilities
 // =============================================================================
-#pragma mark - Utilities
 int
 set_format (std::stringstream& strm, output_fmt fmt = output_fmt::nml);
 
 // =============================================================================
 //                                                     C L A S S  :  V E C T O R
 // =============================================================================
-#pragma mark - Vector
 
 /**
  @brief Vector
@@ -664,7 +661,6 @@ operator< (const vec<DIM>& l, const vec<DIM>& r) {
 // =============================================================================
 //                                                     C L A S S  :  M A T R I X
 // =============================================================================
-#pragma mark - Matrix
 
 /**
  @brief Matrix
@@ -1165,7 +1161,7 @@ transpose (const mat<DIM_ROWS, DIM_COLS, T>& m) {
   thread_pool tp;
 
   // Transpose each column independently, in parallel.
-  for (int j = 0; j < DIM_COLS; ++j) {
+  for (size_t j = 0; j < DIM_COLS; ++j) {
     tp.queue_job ([j, &m, &t] () {
       for (size_t i = 0; i < DIM_ROWS; ++i)
         t.elem()[i * DIM_COLS + j] = m.elem()[j * DIM_ROWS + i];
