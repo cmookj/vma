@@ -7,7 +7,7 @@ real/complex vectors and matrices.
 
 ### macOS
 
-Tested on macOS Ventura 13.1 throught macOS SEquoia 15.7.1.
+Tested on macOS Sequoia 15.7.3.
 
 ### Ubuntu Linux
 
@@ -26,7 +26,7 @@ using Python with numpy running on macOS, and the results are verified in macOS
 
 To test (with `c++17`):
 ```
-GTEST_COLOR=1 bazel test --cxxopt=-std=c++17 --test_output=all //test:point_test
+GTEST_COLOR=1 bazel test --cxxopt=-std=c++17 --test_output=all //test:vma_test
 ```
 
 ## License
