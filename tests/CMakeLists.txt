@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 enable_testing()
 
 add_executable(vma-test
-    test.cc
+    test.cpp
 )
 
 option(USE_OPENBLAS "Link to OpenBLAS library" OFF)

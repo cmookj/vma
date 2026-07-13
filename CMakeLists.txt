@@ -16,7 +16,7 @@ include(Dependencies.cmake)
 # Main library target
 # ------------------------------------------------------------------------------
 add_library(vma STATIC
-    ${PROJECT_SOURCE_DIR}/src/vma.cc)
+    ${PROJECT_SOURCE_DIR}/src/vma.cpp)
 
 target_include_directories(vma PUBLIC
     ${PROJECT_SOURCE_DIR}/include)

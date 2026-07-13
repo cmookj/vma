@@ -11,7 +11,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace gpw::vma;
+using namespace cch::vma;
 
 bool
 mem_limit (const int l) {
@@ -281,7 +281,7 @@ TEST (Matrix, CreationIndexing) {
   EXPECT_EQ (m21.count_cols(), 3);
   EXPECT_EQ (m21.elem(), el00);
 
-  auto m3 = gpw::vma::identity<10>();
+  auto m3 = cch::vma::identity<10>();
   for (std::size_t i = 1; i <= m3.count_rows(); ++i)
     for (std::size_t j = 1; j <= m3.count_cols(); ++j)
       EXPECT_FLOAT_EQ (m3 (i, j), (i == j ? 1. : 0.));
@@ -677,7 +677,7 @@ TEST (Matrix, Manipulation) {
 }
 
 TEST (Matrix, MatrixVectorMultiplication) {
-  auto m1 = gpw::vma::identity<3>();
+  auto m1 = cch::vma::identity<3>();
   auto v1 = vec<3>{1.};
 
   auto v11 = m1 * v1;
@@ -688,7 +688,7 @@ TEST (Matrix, MatrixVectorMultiplication) {
 }
 
 TEST (Matrix, Trace) {
-  auto m = gpw::vma::identity<10>();
+  auto m = cch::vma::identity<10>();
   EXPECT_EQ (tr (m), 10.);
 
   mat<2, 2> m1{
@@ -714,7 +714,7 @@ TEST (Matrix, Trace) {
 }
 
 TEST (Matrix, Determinant) {
-  auto m = gpw::vma::identity<10>();
+  auto m = cch::vma::identity<10>();
   EXPECT_EQ (det (m), 1.);
 
   mat<2, 2> m1{
@@ -859,8 +859,8 @@ TEST (Matrix, SingularValueDecomposition) {
       18.365978454889984, 13.629979679210999, 10.85333572722705, 4.491569094526893
   };
   EXPECT_EQ (norm (SVD.S - singular_values) < TOL * 1e2, true);
-  EXPECT_EQ (similar (SVD.U * transpose (SVD.U), gpw::vma::identity<6>(), TOL * 1e1), true);
-  EXPECT_EQ (similar (SVD.V * transpose (SVD.V), gpw::vma::identity<4>(), TOL * 1e1), true);
+  EXPECT_EQ (similar (SVD.U * transpose (SVD.U), cch::vma::identity<6>(), TOL * 1e1), true);
+  EXPECT_EQ (similar (SVD.V * transpose (SVD.V), cch::vma::identity<4>(), TOL * 1e1), true);
 }
 
 TEST (Matrix, Norm) {
@@ -897,11 +897,11 @@ TEST (Matrix, Eigensystem) {
   };
 
   // Eigenvalues
-  EXPECT_TRUE (similar (gpw::vma::real (es1.eigvals), eval1, 0.00001));
+  EXPECT_TRUE (similar (cch::vma::real (es1.eigvals), eval1, 0.00001));
 
   // Eigenvectors
   for (std::size_t j = 1; j < 5; ++j)
-    EXPECT_EQ (collinear (gpw::vma::real (es1.eigvecs_rt.col (j)), evec1.col (j), 0.0001), true);
+    EXPECT_EQ (collinear (cch::vma::real (es1.eigvecs_rt.col (j)), evec1.col (j), 0.0001), true);
 
   // Case study: asymmetric matrix
   mat<4, 4> m2{
@@ -986,7 +986,7 @@ TEST (Vector, Complex) {
   auto   cv7 = cvec<4> (rv1, iv1);
   EXPECT_EQ (cv7, cv6);
 
-  EXPECT_EQ (gpw::vma::real (cv7), rv1);
+  EXPECT_EQ (cch::vma::real (cv7), rv1);
   EXPECT_EQ (imag (cv7), iv1);
 }
 

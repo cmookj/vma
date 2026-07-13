@@ -92,7 +92,7 @@ dgeev_ (char*, char*, integer*, doublereal*, integer*, doublereal*, doublereal*,
 
 #endif
 
-namespace gpw::vma {
+namespace cch::vma {
 
 // Constants
 const double TOL = 2.2204e-16;
@@ -1156,7 +1156,7 @@ mat<DIM_COLS, DIM_ROWS, T>
 transpose (const mat<DIM_ROWS, DIM_COLS, T>& m) {
   mat<DIM_COLS, DIM_ROWS, T> t{};
 
-  using namespace gpw::concurrency;
+  using namespace cch::concurrency;
 
   thread_pool tp;
 
@@ -1890,6 +1890,6 @@ det (const mat<3, 3>& M);
 mat<3, 3>
 inv (const mat<3, 3>& M);
 
-}  // namespace gpw::vma
+}  // namespace cch::vma
 
 #endif
