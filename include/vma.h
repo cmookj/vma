@@ -26,7 +26,7 @@
 #include <utility>
 #include <vector>
 
-#include "core/concurrency.h"
+#include "concurrency.h"
 
 #if defined(__APPLE__)
 #if defined(USE_OPENBLAS)
